@@ -1,18 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Inknut+Antiqua:wght@800&family=Montserrat:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&family=Zen+Antique+Soft&display=swap');
+/* Available typefaces:
+  Montserrat: body sans
+  Zen Antique Soft: simple serif (no bold or italic)
+  Inknut Antiqua: display
+*/
+
+
+/* ========== PAGEWIDE CHANGES ============================================== */
 html {
-  background: burlywood;
-  color: ivory;
+  background: radial-gradient(lightgreen, limegreen);
+  background-repeat: no-repeat;
+  color: darkslateblue;
 }
 
+/* ========== PAGEWIDE ELEMENTS ============================================= */
+h1, h2 {
+  font-family: 'Inknut Antiqua', serif;
+  font-weight: 800;
+}
+h3, h4, h5, h6 {
+  font-family: 'Zen Antique Soft', serif;
+  font-weight: 300;
+}
+hr {
+  border: 0;
+  height: 1px;
+  background: darkblue;
+}
+
+/* ========== SECTION ELEMENTS ============================================== */
 header {
   padding: 2rem 3rem 2rem;
 }
-
 header h1 {
   padding: 0 0 .2rem .75rem;
 }
 
-header hr {
-  border: 0;
-  height: 1px;
-  background: floralwhite;
+main {
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: center;
+  gap: 1rem;
+}
+
+main > div {
+  border: 1px solid lemonchiffon;
+  box-shadow: 0 0 10px 0 white;
+}
+
+main > div + div {
+  background: lightgreen;
 }

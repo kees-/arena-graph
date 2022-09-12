@@ -4,7 +4,6 @@
 (defn main []
   [:<>
    [:header
-    [:h1 "A ready-to-use re-frame template"]
+    [:h1 "Amoeba"]
     [:hr]]
-   [:main]
-   [:footer]])
+   [:main]])
