@@ -1,0 +1,16 @@
+.DS_Store
+
+# Autogen files
+/.shadow-cljs/
+/.clj-kondo/
+/.lsp/
+/.calva/
+/*-init.clj
+/*.log
+/.nrepl-port
+
+# Project files
+/node_modules/
+/out/
+/target/
+/resources/public/_js/compiled/
