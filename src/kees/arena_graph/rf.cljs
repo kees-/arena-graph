@@ -1,3 +1,4 @@
+#_{:clj-kondo/ignore [:unused-namespace :unused-referred-var]}
 (ns kees.arena-graph.rf
   (:require
    [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-sub reg-fx reg-cofx path]]))

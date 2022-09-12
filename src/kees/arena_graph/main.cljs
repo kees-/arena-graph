@@ -1,3 +1,4 @@
+#_{:clj-kondo/ignore [:unused-referred-var]}
 (ns kees.arena-graph.main
   (:require
    [reagent.dom :as rdom]
