@@ -7,6 +7,11 @@
 
 
 /* ========== PAGEWIDE CHANGES ============================================== */
+* {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 500;
+}
+
 html {
   background: radial-gradient(lightgreen, limegreen);
   background-repeat: no-repeat;
@@ -46,8 +51,40 @@ main {
 main > div {
   border: 1px solid lemonchiffon;
   box-shadow: 0 0 10px 0 white;
+  display: flex;
+  flex-flow: column nowrap;
+  gap: 0.75rem;
 }
 
 main > div + div {
   background: lightgreen;
+}
+
+main > div:has(span) {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+main > div > span {
+  display: flex;
+  flex-flow: row nowrap;
+  gap: 0.5rem;
+  align-self: flex-start;
+  padding: 0 0.75rem;
+  align-items: center;
+}
+
+main > div > span button {
+  width: 2rem;
+  text-align: center;
+  color: ivory;
+  background: forestgreen;
+  border-color: mediumseagreen;
+}
+
+main > div > span button:hover {
+  filter: brightness(1.1);
+}
+main > div > span button:active {
+  filter: brightness(0.9);
 }
