@@ -14,4 +14,4 @@
     :nodeVal :size
     :nodeLabel :title
     :nodeColor :color
-    :onNodeClick #(>evt [::rf/visit-node-channel %1])}])
+    :onNodeClick #(>evt [::rf/graph-node->visit %1])}])

@@ -34,7 +34,7 @@
 (reg-event-db
  ::resp->nodes
  (fn [db [_ resp]]
-   (let [node-keys [:id :slug :title :owner_slug]
+   (let [node-keys [:id :slug :title :owner_slug :base_class :class]
          data (->> resp :contents (mapv #(select-keys % node-keys)))]
      (assoc-in db [:graph-data :nodes] data))))
 
@@ -43,10 +43,15 @@
  (fn [db [_ k v]]
    (assoc db k v)))
 
+;; Format a web URL for either channels or blocks and visit them in the browser
 (reg-event-fx
- ::visit-node-channel
+ ::graph-node->visit
  (fn [_ [_ m]]
-   (let [url (str "https://are.na/" (.-owner_slug m) "/" (.-slug m))]
+   (let [{:keys [base_class owner_slug slug id]} (js->clj m :keywordize-keys true)
+         path (if (= "Channel" base_class)
+                [owner_slug slug]
+                ["block" id])
+         url (apply str "https://are.na/" (interpose "/" path))]
      {:fx [[:browse url]]})))
 
 (reg-event-db
