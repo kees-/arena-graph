@@ -1,5 +1,6 @@
 (ns kees.arena-graph.graphs
-  (:require ["react-force-graph-2d" :as ForceGraph2D]))
+  (:require ["react-force-graph-2d" :as ForceGraph2D]
+            [kees.arena-graph.rf :as rf :refer [>evt]]))
 
 (defn graph
   [data]
@@ -10,4 +11,5 @@
     :minZoom 0.75
     :maxZoom 5
     :nodeLabel :title
-    :nodeColor :color}])
+    :nodeColor :color
+    :onNodeClick #(>evt [::rf/visit-node-channel %1])}])

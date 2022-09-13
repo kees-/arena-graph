@@ -18,6 +18,11 @@
    :graph-data {:nodes [{:id 1 :title ":)" :color "pink"}]
                 :links []}})
 
+(reg-fx
+ :browse
+ (fn [url]
+   (.open js/window url)))
+
 ;; ========== EFFECTS ==========================================================
 (reg-event-fx
  ::boot
@@ -35,6 +40,12 @@
  ::assoc
  (fn [db [_ k v]]
    (assoc db k v)))
+
+(reg-event-fx
+ ::visit-node-channel
+ (fn [_ [_ m]]
+   (let [url (str "https://are.na/" (.-owner_slug m) "/" (.-slug m))]
+     {:fx [[:browse url]]})))
 
 ;; ========== SUBSCRIPTIONS ====================================================
 (reg-sub
