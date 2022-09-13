@@ -6,7 +6,8 @@
 (defn size-variance
   "Returns lazy infinite maps with :size to float within v of n"
   [n v]
-  (repeatedly #(hash-map :size (+ n (- v) (* 2 v (rand))))))
+  (repeatedly #(hash-map :color "royalblue"
+                         :size (+ n (- v) (* 2 v (rand))))))
 
 ;; ========== SETUP ============================================================
 (def <sub (comp deref re-frame/subscribe))
@@ -19,7 +20,7 @@
 (def default-db
   {:channel-slug "other-ppl-sewing-channels"
    :channel-id nil
-   :latest-response nil
+   :connection-count nil
    :graph-data {:nodes [{:id 1 :title ":)" :color "pink"}]
                 :links []}})
 
@@ -55,7 +56,7 @@
 (reg-event-db
  ::add-node-sizes
  (fn [db _]
-   (update-in db [:graph-data :nodes] #(mapv merge % (size-variance 3 2)))))
+   (update-in db [:graph-data :nodes] #(mapv merge % (size-variance 4 3)))))
 
 ;; ========== SUBSCRIPTIONS ====================================================
 (reg-sub

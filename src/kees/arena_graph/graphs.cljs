@@ -10,6 +10,7 @@
     :height 400
     :minZoom 0.75
     :maxZoom 5
+    :d3VelocityDecay 0.6
     :nodeVal :size
     :nodeLabel :title
     :nodeColor :color

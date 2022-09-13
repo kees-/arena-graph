@@ -20,14 +20,47 @@
      [:aside "Replace graph nodes with connected channels"]]))
 
 (defn get-prop
-  [{:keys [prop-key desc char-val]}]
+  [{:keys [prop-key state-key desc char-val]}]
   (let [channel (<get :channel-slug)
         request (fn []
                   (api/GET {:path (str "channels/" channel "/thumb")
-                            :handler #(>assoc :channel-id (prop-key %))}))]
+                            :handler #(>assoc state-key (prop-key %))}))]
     [:span
      [:button {:on-click request} (char char-val)]
      [:aside desc]]))
+
+(defn control-panel
+  []
+  [:div
+   [populate-graph]
+   [get-prop {:prop-key :id
+              :state-key :channel-id
+              :desc "Grab the ID of the channel"
+              :char-val 0x03A8}]
+   [get-prop {:prop-key :length
+              :state-key :connection-count
+              :desc "Grab the connection count of the channel"
+              :char-val 0x03A7}]
+   [:span
+    [:button {:on-click #(>evt [::rf/add-node-sizes])} (char 0x03A6)]
+    [:aside "Add varying sizes to each node"]]])
+
+(defn value-display
+  [k]
+  [:aside (<get k)])
+
+(defn display-panel
+  []
+  [:div
+   [:span
+    [:h3 "Channel slug:"]
+    [value-display :channel-slug]]
+   [:span
+    [:h3 "Channel ID:"]
+    [value-display :channel-id]]
+   [:span
+    [:h3 "Connection count:"]
+    [value-display :connection-count]]])
 
 (defn main []
   [:<>
@@ -36,15 +69,5 @@
     [:hr]]
    [:main
     [graph]
-    [:div
-     [populate-graph]
-     [get-prop {:prop-key :id
-                :desc "Grab the ID of the channel"
-                :char-val 0x03A8}]
-     [get-prop {:prop-key :length
-                :desc "Grab the connection count of the channel"
-                :char-val 0x03A7}]
-     [:span
-      [:button {:on-click #(>evt [::rf/add-node-sizes])}
-       (char 0x03A6)]
-      [:aside "Add varying sizes to each node"]]]]])
+    [control-panel]
+    [display-panel]]])
