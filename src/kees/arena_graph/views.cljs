@@ -2,7 +2,8 @@
 (ns kees.arena-graph.views
   (:require [kees.arena-graph.rf :as rf :refer [<sub <get >evt >assoc]]
             [kees.arena-graph.graphs :as graphs]
-            [kees.arena-graph.api :as api]))
+            [kees.arena-graph.api :as api]
+            [kees.arena-graph.logic :as logic]))
 
 (defn graph
   []
@@ -10,13 +11,16 @@
 
 (defn populate-graph
   []
-  (let [channel (<get :channel-slug)
+  (let [id (<get :channel-id)
         request (fn []
-                 (api/GET {:path (str "channels/" channel)
-                           :handler #(>evt [::rf/resp->nodes %])
-                           :params {:page 1 :per 50}}))]
+                  (if id
+                    (api/GET {:path (str "channels/" id)
+                              :handler #(>evt [::rf/resp->nodes %])
+                              :params {:page 1 :per 50}})
+                    (js/console.error "Need an ID loaded!")))]
     [:span
-     [:button {:on-click request} (char 0x03A9)]
+     [:button {:on-click request
+               :class (when-not id "disabled")} (char 0x03A9)]
      [:aside "Replace graph nodes with connected channels"]]))
 
 (defn get-prop
@@ -29,21 +33,36 @@
      [:button {:on-click request} (char char-val)]
      [:aside desc]]))
 
+(defn color-picker 
+  []
+  (let [color (keyword (<get :active-color))]
+    [:span
+     [:button {:on-click #(>evt [::rf/add-node-colors color])}
+      (char 0x03A5)]
+     [:aside "Assign all the nodes random shades of"]
+     (into
+      [:select
+       {:on-change #(>assoc :active-color (.. % -target -value))}]
+      (for [k (keys (methods logic/hex))]
+        [:option k]))]))
+
 (defn control-panel
   []
   [:div
-   [populate-graph]
    [get-prop {:prop-key :id
               :state-key :channel-id
               :desc "Grab the ID of the channel"
               :char-val 0x03A8}]
+   [populate-graph]
    [get-prop {:prop-key :length
               :state-key :connection-count
               :desc "Grab the connection count of the channel"
               :char-val 0x03A7}]
    [:span
-    [:button {:on-click #(>evt [::rf/add-node-sizes])} (char 0x03A6)]
-    [:aside "Add varying sizes to each node"]]])
+    [:button {:on-click #(>evt [::rf/add-node-sizes])}
+     (char 0x03A6)]
+    [:aside "Add varying sizes to each node"]]
+   [color-picker]])
 
 (defn value-display
   [k]
@@ -62,6 +81,22 @@
     [:h3 "Connection count:"]
     [value-display :connection-count]]])
 
+(defn color-tones
+  []
+  (into
+   [:div
+    {:style {:display "grid"
+             :grid-template-rows "repeat(8, 1fr)"
+             :grid-template-columns "repeat(8, 1fr)"
+             :gap 0}}]
+   (for [n (range 64)
+         :let [color (logic/hex :gold)]]
+     [:div {:style {:width "3rem"
+                    :height "3rem"
+                    :background-color color
+                    :font-size "0.4rem"}}
+      n])))
+
 (defn main []
   [:<>
    [:header
@@ -70,4 +105,5 @@
    [:main
     [graph]
     [control-panel]
-    [display-panel]]])
+    [display-panel]
+    [color-tones]]])

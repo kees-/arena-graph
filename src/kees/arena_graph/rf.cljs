@@ -1,13 +1,8 @@
 #_{:clj-kondo/ignore [:unused-namespace :unused-referred-var]}
 (ns kees.arena-graph.rf
   (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-sub reg-fx reg-cofx path]]
-            [kees.arena-graph.api :as api]))
-
-(defn size-variance
-  "Returns lazy infinite maps with :size to float within v of n"
-  [n v]
-  (repeatedly #(hash-map :color "royalblue"
-                         :size (+ n (- v) (* 2 v (rand))))))
+            [kees.arena-graph.api :as api]
+            [kees.arena-graph.logic :as logic]))
 
 ;; ========== SETUP ============================================================
 (def <sub (comp deref re-frame/subscribe))
@@ -21,7 +16,8 @@
   {:channel-slug "other-ppl-sewing-channels"
    :channel-id nil
    :connection-count nil
-   :graph-data {:nodes [{:id 1 :title ":)" :color "pink"}]
+   :active-color :gold
+   :graph-data {:nodes []
                 :links []}})
 
 (reg-fx
@@ -55,8 +51,16 @@
 
 (reg-event-db
  ::add-node-sizes
- (fn [db _]
-   (update-in db [:graph-data :nodes] #(mapv merge % (size-variance 4 3)))))
+ [(path :graph-data)]
+ (fn [graph-data _]
+   (update graph-data :nodes #(mapv merge % (logic/size-variance 5 3)))))
+
+(reg-event-db
+ ::add-node-colors
+ [(path :graph-data)]
+ (fn [graph-data [_ color]]
+   (update graph-data :nodes #(mapv merge % (logic/hex-map color)))))
+
 
 ;; ========== SUBSCRIPTIONS ====================================================
 (reg-sub
