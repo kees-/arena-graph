@@ -43,4 +43,8 @@
                 :char-val 0x03A8}]
      [get-prop {:prop-key :length
                 :desc "Grab the connection count of the channel"
-                :char-val 0x03A7}]]]])
+                :char-val 0x03A7}]
+     [:span
+      [:button {:on-click #(>evt [::rf/add-node-sizes])}
+       (char 0x03A6)]
+      [:aside "Add varying sizes to each node"]]]]])

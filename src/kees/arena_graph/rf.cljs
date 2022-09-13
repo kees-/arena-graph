@@ -3,6 +3,11 @@
   (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-sub reg-fx reg-cofx path]]
             [kees.arena-graph.api :as api]))
 
+(defn size-variance
+  "Returns lazy infinite maps with :size to float within v of n"
+  [n v]
+  (repeatedly #(hash-map :size (+ n (- v) (* 2 v (rand))))))
+
 ;; ========== SETUP ============================================================
 (def <sub (comp deref re-frame/subscribe))
 (def <sub-lazy re-frame/subscribe)
@@ -46,6 +51,11 @@
  (fn [_ [_ m]]
    (let [url (str "https://are.na/" (.-owner_slug m) "/" (.-slug m))]
      {:fx [[:browse url]]})))
+
+(reg-event-db
+ ::add-node-sizes
+ (fn [db _]
+   (update-in db [:graph-data :nodes] #(mapv merge % (size-variance 3 2)))))
 
 ;; ========== SUBSCRIPTIONS ====================================================
 (reg-sub

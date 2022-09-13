@@ -10,6 +10,7 @@
     :height 400
     :minZoom 0.75
     :maxZoom 5
+    :nodeVal :size
     :nodeLabel :title
     :nodeColor :color
     :onNodeClick #(>evt [::rf/visit-node-channel %1])}])
