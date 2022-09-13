@@ -1,8 +1,7 @@
 #_{:clj-kondo/ignore [:unused-referred-var]}
 (ns kees.arena-graph.views
-  (:require [kees.arena-graph.rf :as rf :refer [<sub <get >evt >assoc]]
+  (:require [kees.arena-graph.rf :as rf :refer [<sub <get >evt >assoc >GET]]
             [kees.arena-graph.graphs :as graphs]
-            [kees.arena-graph.api :as api]
             [kees.arena-graph.logic :as logic]))
 
 (defn graph
@@ -12,25 +11,26 @@
 (defn populate-graph
   []
   (let [id (<get :channel-id)
-        request (fn []
-                  (if id
-                    (api/GET {:path ["channels" id]
-                              :handler #(>evt [::rf/resp->nodes %])
-                              :params {:page 1 :per 50}})
-                    (js/console.error "Need an ID loaded!")))]
+        request #(when id
+                   (>evt [::rf/GET {:path ["channels" id]
+                                    :on-success ::rf/resp->nodes
+                                    :params {:page 1 :per 50}}]))]
     [:span
      [:button {:on-click request
                :class (when-not id "disabled")} (char 0x03A9)]
      [:aside "Replace graph nodes with connected channels"]]))
 
 (defn get-prop
-  [{:keys [prop-key state-key desc char-val]}]
-  (let [channel (<get :channel-slug)
-        request (fn []
-                  (api/GET {:path ["channels" channel "thumb"]
-                            :handler #(>assoc state-key (prop-key %))}))]
+  [{:keys [prop-key state-key desc char-val needs]}]
+  (let [active? (<get needs)
+        channel (<get :channel-slug)
+        request #(when active?
+                   (>GET {:path ["channels" channel "thumb"]
+                          :on-success [::rf/assoc-prop state-key prop-key]}))]
     [:span
-     [:button {:on-click request} (char char-val)]
+     [:button {:on-click request
+               :class (when-not active? "disabled")}
+      (char char-val)]
      [:aside desc]]))
 
 (defn color-picker 
@@ -52,12 +52,14 @@
    [get-prop {:prop-key :id
               :state-key :channel-id
               :desc "Grab the ID of the channel"
-              :char-val 0x03A8}]
+              :char-val 0x03A8
+              :needs :channel-slug}]
    [populate-graph]
    [get-prop {:prop-key :length
               :state-key :connection-count
               :desc "Grab the connection count of the channel"
-              :char-val 0x03A7}]
+              :char-val 0x03A7
+              :needs :channel-id}]
    [:span
     [:button {:on-click #(>evt [::rf/add-node-sizes])}
      (char 0x03A6)]
