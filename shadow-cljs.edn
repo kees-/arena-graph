@@ -19,7 +19,8 @@
    :output-dir "resources/public/_js/compiled"
    :asset-path "/_js/compiled"
    :modules {:app {:init-fn kees.arena-graph.main/init}}
-   :devtools {:preloads [day8.re-frame-10x.preload]}
+   :devtools {:preloads [day8.re-frame-10x.preload
+                         shadow.remote.runtime.cljs.browser]}
    :dev {:compiler-options
          {:closure-defines
           {re-frame.trace.trace-enabled? true
