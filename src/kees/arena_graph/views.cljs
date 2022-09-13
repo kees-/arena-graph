@@ -83,22 +83,6 @@
     [:h3 "Connection count:"]
     [value-display :connection-count]]])
 
-(defn color-tones
-  []
-  (into
-   [:div
-    {:style {:display "grid"
-             :grid-template-rows "repeat(8, 1fr)"
-             :grid-template-columns "repeat(8, 1fr)"
-             :gap 0}}]
-   (for [n (range 64)
-         :let [color (logic/hex :gold)]]
-     [:div {:style {:width "3rem"
-                    :height "3rem"
-                    :background-color color
-                    :font-size "0.4rem"}}
-      n])))
-
 (defn main []
   [:<>
    [:header
@@ -107,5 +91,4 @@
    [:main
     [graph]
     [control-panel]
-    [display-panel]
-    [color-tones]]])
+    [display-panel]]])
