@@ -14,7 +14,7 @@
   (let [id (<get :channel-id)
         request (fn []
                   (if id
-                    (api/GET {:path (str "channels/" id)
+                    (api/GET {:path ["channels" id]
                               :handler #(>evt [::rf/resp->nodes %])
                               :params {:page 1 :per 50}})
                     (js/console.error "Need an ID loaded!")))]
@@ -27,7 +27,7 @@
   [{:keys [prop-key state-key desc char-val]}]
   (let [channel (<get :channel-slug)
         request (fn []
-                  (api/GET {:path (str "channels/" channel "/thumb")
+                  (api/GET {:path ["channels" channel "thumb"]
                             :handler #(>assoc state-key (prop-key %))}))]
     [:span
      [:button {:on-click request} (char char-val)]

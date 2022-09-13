@@ -18,5 +18,8 @@
                       :params {}}
         params (-> (merge default-opts supplied-params)
                    (assoc-in [:headers :authorization] auth))
-        uri (str location (s/replace-first path #"^/" ""))]
+        uri (->> path
+                 (mapv (comp #(s/replace % "^/|/$" "") str))
+                 (interpose "/")
+                 (apply str location))]
     (ajax/GET uri params)))
