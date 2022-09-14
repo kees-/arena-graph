@@ -8,10 +8,11 @@
    {:graphData data
     :width 500
     :height 400
-    :minZoom 0.75
+    :minZoom 1
     :maxZoom 5
-    :d3VelocityDecay 0.6
+    :d3VelocityDecay 0.5
     :nodeVal :size
     :nodeLabel :title
     :nodeColor :color
-    :onNodeClick #(>evt [::rf/graph-node->visit %1])}])
+    :onNodeClick #(>evt [::rf/graph-node->visit %1])
+    :linkWidth 1}])

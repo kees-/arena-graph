@@ -17,9 +17,19 @@
 (defn hex-map
   "Returns infinite maps supplying a random color in specified hue range"
   [color]
-  (repeatedly #(hash-map :color (hex color))))
+  (hash-map :color (hex color)))
+
+(defn hex-maps
+  "Returns infinite maps supplying a random color in specified hue range"
+  [color]
+  (repeatedly #(hex-map color)))
+
+(defn size-variant
+  "Return one hash-map of :size to a float within v of n"
+  [base variant]
+  (hash-map :size (+ base (- variant) (* 2 variant (rand)))))
 
 (defn size-variance
   "Returns infinite maps with :size to float within v of n"
-  [n v]
-  (repeatedly #(hash-map :size (+ n (- v) (* 2 v (rand))))))
+  [base variant]
+  (repeatedly #(size-variant base variant)))

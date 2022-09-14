@@ -27,10 +27,18 @@ h3, h4, h5, h6 {
   font-family: 'Zen Antique Soft', serif;
   font-weight: 300;
 }
+
 hr {
   border: 0;
   height: 1px;
   background: darkblue;
+}
+
+input, select {
+  padding: 0 0.25rem 0.2rem;
+  font-family: 'Zen Antique Soft', serif;
+  font-size: 0.9rem;
+  color: darkslategrey;
 }
 
 /* ========== SECTION ELEMENTS ============================================== */
@@ -84,7 +92,7 @@ main > div > span {
 main > div > span h3 + aside {
   font-size: 0.9rem;
   background: rgba(200, 200, 200, 0.35);
-  filter: brightness(1.3);
+  filter: brightness(1.35);
   border-radius: 0.4rem;
   padding: 0.2rem 0.4rem;
 }
@@ -96,6 +104,7 @@ main > div > span button {
   background: forestgreen;
   border-color: mediumseagreen;
   border-radius: 0.1rem;
+  font-weight: 500;
 }
 main > div > span button:hover {
   filter: brightness(1.1);
@@ -106,4 +115,12 @@ main > div > span button:active {
 .disabled {
   pointer-events: none;
   filter: grayscale(0.8);
+}
+
+main > div > span *:focus {
+  outline: 2px solid lightgoldenrodyellow;
+}
+
+main > div > span input[type=text] {
+  min-width: 12rem;
 }

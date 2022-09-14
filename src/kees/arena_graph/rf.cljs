@@ -13,13 +13,16 @@
 (defn >assoc [k v] (>evt [::assoc k v]))
 (defn >GET [opts] (>evt [::GET opts]))
 
+(def empty-graph
+  {:nodes []
+   :links []})
+
 (def default-db
   {:channel-slug "other-ppl-sewing-channels"
    :channel-id nil
    :connection-count nil
    :active-color :gold
-   :graph-data {:nodes []
-                :links []}})
+   :graph-data empty-graph})
 
 (def ^:private location "http://api.are.na/v2/")
 (def ^:private auth "FILL IN YOUR OWN!")
@@ -71,13 +74,6 @@
    {:fx [[:error error]]}))
 
 (reg-event-db
- ::resp->nodes
- (fn [db [_ resp]]
-   (let [node-keys [:id :slug :title :owner_slug :base_class :class]
-         data (->> resp :contents (mapv #(select-keys % node-keys)))]
-     (assoc-in db [:graph-data :nodes] data))))
-
-(reg-event-db
  ::assoc
  (fn [db [_ k v]]
    (assoc db k v)))
@@ -101,16 +97,79 @@
 (reg-event-db
  ::add-node-sizes
  [(path :graph-data)]
- (fn [graph-data _]
-   (update graph-data :nodes #(mapv merge % (logic/size-variance 5 3)))))
+ (fn [graph [_ base variance]]
+   (update graph :nodes #(mapv merge % (logic/size-variance base variance)))))
 
 (reg-event-db
  ::add-node-colors
  [(path :graph-data)]
  (fn [graph-data [_ color]]
-   (update graph-data :nodes #(mapv merge % (logic/hex-map color)))))
+   (update graph-data :nodes #(mapv merge % (logic/hex-maps color)))))
 
+;; Call with a thumb request
+(reg-event-db
+ ::o0-populate
+ [(path :graph-data)]
+ (fn [data [_ thumb]]
+   (let [node-keys [:id :slug :title :owner_slug :base_class]
+         node (-> thumb
+                  (select-keys node-keys)
+                  (merge (logic/size-variant 4 0.5)
+                         (logic/hex-map :gold)
+                         {:order 0}))]
+     (update data :nodes conj node))))
 
+(reg-event-db
+ ::o1-connect
+ (fn [{:keys [channel-id] :as db} [_ channels]]
+   (let [links (mapv #(hash-map :source (:id %)
+                                :target channel-id
+                                :color (logic/hex :pink))
+                     channels)]
+     (update-in db [:graph-data :links] into links))))
+
+;; Call with a contents request
+(reg-event-db
+ ::o1-populate
+ [(path :graph-data)]
+ (fn [data [_ channels]]
+   (let [node-keys [:id :slug :title :owner_slug :base_class]
+         nodes (mapv
+                #(-> (select-keys % node-keys)
+                     (merge (logic/size-variant 1.25 0.5)
+                            (logic/hex-map :pink)
+                            {:order 1}))
+                channels)]
+     (update data :nodes into nodes))))
+
+(reg-event-fx
+ ::order-up
+ (fn [{:keys [db]} _]
+   (let [id (:channel-id db)]
+     (if id
+       {:fx [[:dispatch [::assoc :graph-data empty-graph]]
+             [:dispatch [::GET {:path ["channels" id "thumb"]
+                                :params {:page 1 :per 50}
+                                :on-success [::order-up-o0 id]}]]]}
+       {:fx [[:error "Channel ID not present in state!"]]}))))
+
+(reg-event-fx
+ ::order-up-o0
+ (fn [_ [_ id thumb]]
+   {:fx [[:dispatch [::o0-populate thumb]]
+         [:dispatch [::GET {:path ["channels" id "contents"]
+                            :params {:page 1 :per 50}
+                            :on-success [::order-up-o1 id]}]]]}))
+
+(reg-event-fx
+ ::order-up-o1
+ (fn [_ [_ id {:keys [contents]}]]
+   (let [channels (filterv #(= "Channel" (:base_class %)) contents)]
+     (if (not-empty channels)
+       {:fx [[:dispatch [::o1-populate channels]]
+             [:dispatch [::o1-connect channels]]
+             #_[:dispatch [::GET {}]]]}
+       {:fx [[:error "There are no channels in the chosen channel?!"]]}))))
 ;; ========== SUBSCRIPTIONS ====================================================
 (reg-sub
  ::get
