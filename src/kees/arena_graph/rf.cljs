@@ -3,7 +3,8 @@
             [clojure.string :as s]
             [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-sub reg-fx path]]
             [day8.re-frame.http-fx]
-            [kees.arena-graph.logic :as logic]))
+            [kees.arena-graph.logic :as logic]
+            [kees.arena-graph.rf.console :as console]))
 
 ;; ========== SETUP ============================================================
 (def <sub (comp deref re-frame/subscribe))
@@ -22,7 +23,8 @@
    :channel-id nil
    :connection-count nil
    :active-color :gold
-   :graph-data empty-graph})
+   :graph-data empty-graph
+   :console []})
 
 (def ^:private location "http://api.are.na/v2/")
 (def ^:private auth "FILL IN YOUR OWN!")
@@ -60,7 +62,9 @@
 (reg-event-fx
  ::boot
  (fn [_ _]
-   {:db default-db}))
+   {:db default-db
+    :fx [[:dispatch-later {:ms 2000 :dispatch [::console/delayed-log :info 900 "Hi!"]}]
+         [:dispatch-later {:ms 4250 :dispatch [::console/delayed-log :info 1750 "Add a channel to get started."]}]]}))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (reg-event-fx
@@ -151,7 +155,7 @@
              [:dispatch [::GET {:path ["channels" id "thumb"]
                                 :params {:page 1 :per 50}
                                 :on-success [::order-up-o0 id]}]]]}
-       {:fx [[:error "Channel ID not present in state!"]]}))))
+       {:fx [[:dispatch [::console/log :error "Grab the ID before submitting an order!"]]]}))))
 
 (reg-event-fx
  ::order-up-o0
@@ -169,7 +173,8 @@
        {:fx [[:dispatch [::o1-populate channels]]
              [:dispatch [::o1-connect channels]]
              #_[:dispatch [::GET {}]]]}
-       {:fx [[:error "There are no channels in the chosen channel?!"]]}))))
+       {:fx [[:dispatch [::console/log :error "There are no channels in the chosen channel?!"]]]}))))
+
 ;; ========== SUBSCRIPTIONS ====================================================
 (reg-sub
  ::get
