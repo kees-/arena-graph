@@ -14,13 +14,15 @@
 - [ ] Node connectivity
   - [x] All 1st order connect to 0 order
   - [ ] All 2nd order connect to relevant connections(!) not parents
+- [ ] Request pagination
 - [x] Node styling
   - [x] Node size within variance by order
   - [x] Node random color within variance by order
-- [ ] Oauth
+- [ ] Oauth(?)
 - [ ] UI refine
   - [ ] Kill nonessential inputs
   - [ ] Maximize content in space
+  - [ ] Loading
 
 ---
 

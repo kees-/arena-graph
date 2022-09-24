@@ -39,7 +39,7 @@
                 :on-change #(reset! slug (.. % -target -value))
                 :value @slug}]])))
 
-(defn color-picker 
+(defn color-picker
   []
   (let [color (keyword (<get :active-color))]
     [:span
