@@ -119,7 +119,7 @@ section > span button:active {
 }
 .disabled {
   pointer-events: none;
-  filter: grayscale(0.8);
+  filter: grayscale(0.75);
 }
 
 section > span *:focus {
@@ -164,13 +164,21 @@ section > span input[type=text] {
 }
 
 #console .error {
-  filter: saturate(1.7);
   backdrop-filter: hue-rotate(260deg);
   -webkit-backdrop-filter: hue-rotate(260deg);
 }
 
+#console .guide {
+  filter: saturate(1.7)
+}
+
+#console .info {
+  filter: saturate(0);
+}
+
 #typing {
   display: none;
+  padding-top: 2px;
   animation: 0.4s ease-in-out 0s infinite alternate pulse;
 }
 

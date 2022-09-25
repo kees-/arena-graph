@@ -19,9 +19,8 @@
    :links []})
 
 (def default-db
-  {:channel-slug "other-ppl-sewing-channels"
-   :channel-id nil
-   :connection-count nil
+  {:channel-slug ""
+   :thumb {}
    :active-color :gold
    :graph-data empty-graph
    :console []})
@@ -30,7 +29,7 @@
 (def ^:private auth "FILL IN YOUR OWN!")
 
 (reg-fx :tap (fn [data] (tap> data)))
-(reg-fx :error (fn [resp] (.error js/console "ERROR:" resp)))
+(reg-fx :error (fn [& resp] (.error js/console "ERROR:" resp)))
 (reg-fx :browse (fn [url] (.open js/window url)))
 
 ;; Provide a map with, at minimum, :path and :on-success kvs
@@ -58,13 +57,36 @@
                      (assoc-in [:headers :authorization] auth))]
      {:fx [[:http-xhrio request]]})))
 
+(reg-event-fx
+ ::GET-contents-page-loop
+ (fn [{:keys [db]} [_ pages remaining accumulation completion-evt & resp]]
+   (let [channel (get-in db [:thumb :id])
+         current (dec remaining)
+         accumulation (into accumulation (get (first resp) :contents))]
+     (if (< remaining 1)
+       {:fx [[:dispatch (conj completion-evt accumulation)]]}
+       {:fx [(when (< 2 pages)
+               [:dispatch [::console/log :info "Requesting page" (- pages current) "of" pages]])
+             [:dispatch-later
+              {:ms 1000
+               :dispatch [::GET
+                          {:path ["channels" channel "contents"]
+                           :params {:page (- pages current)
+                                    :per 100}
+                           :on-success [::GET-contents-page-loop
+                                        pages
+                                        current
+                                        accumulation
+                                        completion-evt]
+                           :on-failure [::error ":( Something went wrong in the loop"]}]}]]}))))
+
 ;; ========== EFFECTS ==========================================================
 (reg-event-fx
  ::boot
  (fn [_ _]
    {:db default-db
-    :fx [[:dispatch-later {:ms 2000 :dispatch [::console/delayed-log :info 900 "Hi!"]}]
-         [:dispatch-later {:ms 4250 :dispatch [::console/delayed-log :info 1750 "Add a channel to get started."]}]]}))
+    :fx [[:dispatch-later {:ms 2000 :dispatch [::console/delayed-log :guide 900 "Hi!"]}]
+         [:dispatch-later {:ms 4250 :dispatch [::console/delayed-log :guide 1750 "Add a channel to get started."]}]]}))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (reg-event-fx
@@ -87,6 +109,23 @@
  (fn [db [_ state-key prop-key v]]
    (assoc db state-key (prop-key v))))
 
+(reg-event-fx
+ ::select-channel-success
+ (fn [{:keys [db]} [_ response]]
+   {:db (assoc db :thumb response)
+    :fx [[:dispatch-later
+          {:ms 500
+           :dispatch [::console/delayed-log :guide 750 "Great! Looks like a valid channel."]}]]}))
+
+(reg-event-fx
+ ::select-channel
+ (fn [_ [_ query]]
+   (if-let [slug (re-find #"[-a-z0-9]+$" query)]
+     {:fx [[:dispatch [::console/log :info "Changing channel to:" slug]]
+           [:dispatch [::GET {:path ["channels" slug "thumb"]
+                              :on-success [::select-channel-success]}]]]}
+     {:fx [[:dispatch [::console/log :error "Are you sure that channel name is valid?"]]]})))
+
 ;; Format a web URL for either channels or blocks and visit them in the browser
 (reg-event-fx
  ::graph-node->visit
@@ -98,7 +137,7 @@
          url (apply str "https://are.na/" (interpose "/" path))]
      {:fx [[:browse url]]})))
 
-(reg-event-db
+#_(reg-event-db
  ::add-node-sizes
  [(path :graph-data)]
  (fn [graph [_ base variance]]
@@ -125,14 +164,15 @@
 
 (reg-event-db
  ::o1-connect
- (fn [{:keys [channel-id] :as db} [_ channels]]
-   (let [links (mapv #(hash-map :source (:id %)
-                                :target channel-id
+ (fn [db [_ channels]]
+   (let [id (get-in db [:thumb :id])
+         links (mapv #(hash-map :source (:id %)
+                                :target id
                                 :color (logic/hex :pink))
                      channels)]
      (update-in db [:graph-data :links] into links))))
 
-;; Call with a contents request
+;; Call with a seq of channel maps
 (reg-event-db
  ::o1-populate
  [(path :graph-data)]
@@ -149,25 +189,40 @@
 (reg-event-fx
  ::order-up
  (fn [{:keys [db]} _]
-   (let [id (:channel-id db)]
+   (let [id (get-in db [:thumb :id])]
      (if id
        {:fx [[:dispatch [::assoc :graph-data empty-graph]]
-             [:dispatch [::GET {:path ["channels" id "thumb"]
-                                :params {:page 1 :per 50}
-                                :on-success [::order-up-o0 id]}]]]}
-       {:fx [[:dispatch [::console/log :error "Grab the ID before submitting an order!"]]]}))))
+             [:dispatch [::order-up-o0 id]]]}
+       {:fx [[:dispatch [::console/log :error "I'm not finding the id of the channel."]]]}))))
+
+(reg-event-fx
+ ::o0-conversation
+ (fn [_ [_ pages]]
+   (let [medium [[:dispatch [::console/delayed-log :guide 500 "Wow, that's some channel! This will take a little time."]]]
+         large [[:dispatch [::console/delayed-log :guide 500 "That's a decent sized channel. I'll start looking now."]]]]
+     {:fx (cond
+            (< 5 pages) medium
+            (< 2 pages) large
+            :else [])})))
 
 (reg-event-fx
  ::order-up-o0
- (fn [_ [_ id thumb]]
-   {:fx [[:dispatch [::o0-populate thumb]]
-         [:dispatch [::GET {:path ["channels" id "contents"]
-                            :params {:page 1 :per 50}
-                            :on-success [::order-up-o1 id]}]]]}))
+ (fn [{:keys [db]} [_ id]]
+   (let [thumb (:thumb db)
+         length (:length thumb)
+         pages (Math/ceil (* length 0.01))]
+     {:fx [[:dispatch [::o0-populate thumb]]
+           [:dispatch-later
+            {:ms 500
+             :dispatch [::o0-conversation pages]}]
+           [:dispatch-later
+            {:ms 2000
+             :dispatch [::GET-contents-page-loop
+                        pages pages [] [::order-up-o1 id]]}]]})))
 
 (reg-event-fx
  ::order-up-o1
- (fn [_ [_ id {:keys [contents]}]]
+ (fn [_ [_ id contents]]
    (let [channels (filterv #(= "Channel" (:base_class %)) contents)]
      (if (not-empty channels)
        {:fx [[:dispatch [::o1-populate channels]]

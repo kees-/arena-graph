@@ -28,16 +28,15 @@
   (let [slug (r/atom "")]
     (fn []
       [:span
-       [:button {:on-click #(do
-                              (>assoc :channel-slug (if (= "" @slug) nil @slug))
-                              (>evt [::console/log :info "New channel:" @slug])
-                              (>assoc :channel-id nil)
-                              (>assoc :connection-count nil)
-                              (reset! slug ""))}
+       [:button
+        {:class (when (= "" @slug) "disabled")
+         :on-click #(do
+                      (>evt [::rf/select-channel @slug])
+                      (reset! slug ""))}
         (char 0x03A9)]
        [:aside "Change the channel"]
        [:input {:type "text"
-                :placeholder "slug"
+                :placeholder "url, slug, or id"
                 :on-change #(reset! slug (.. % -target -value))
                 :value @slug}]])))
 
@@ -56,47 +55,21 @@
 
 (defn control-panel
   []
-  [:section
+  [:div>section
    [channel-changer]
-   [get-prop {:prop-key :id
-              :state-key :channel-id
-              :desc "Grab the ID of the channel"
-              :char-val 0x03A8
-              :needs :channel-slug}]
-   #_[get-prop {:prop-key :length
-              :state-key :connection-count
-              :desc "Grab the connection count of the channel"
-              :char-val 0x03A7
-              :needs :channel-id}]
-   [:span
+   #_[:span
     [:button {:on-click #(>evt [::rf/add-node-sizes 2 1.9])}
      (char 0x03A6)]
     [:aside "Add varying sizes to each node"]]
-   [color-picker]
+   #_[color-picker]
    [:span
     [:button {:on-click #(>evt [::rf/order-up])}
      (char 0x03A4)]
-    [:aside [:i "ORDER UP!!!"]]]
+    [:aside "Create the graph"]]
    [:span
     [:button {:on-click #(>evt [::console/delayed-log :info 500 (random-uuid)])}
      (char 0x03A3)]
     [:aside "Log a message"]]])
-
-(defn value-display
-  [k]
-  [:aside (<get k)])
-
-(defn display-panel
-  []
-  [:section
-   [:span [:h3 "Channel ID:"] [value-display :channel-id]]
-   [:span [:h3 "Connection count:"] [value-display :connection-count]]])
-
-(defn panels
-  []
-  [:div
-   [control-panel]
-   #_[display-panel]])
 
 (defn main []
   [:<>
@@ -106,4 +79,4 @@
    [:main
     [graph]
     [console/element]
-    [panels]]])
+    [control-panel]]])

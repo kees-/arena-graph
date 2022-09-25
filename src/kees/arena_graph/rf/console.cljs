@@ -15,6 +15,7 @@
 (defn- li
   [type message]
   [(type {:info :li.info
+          :guide :li.guide
           :error :li.error})
    {:key (rand)}
    [:aside (timestamp)]
