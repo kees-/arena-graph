@@ -62,7 +62,8 @@
     [:aside "Add varying sizes to each node"]]
    #_[color-picker]
    [:span
-    [:button {:on-click #(>evt [::rf/order-up])}
+    [:button {:class (when (<get :working) "disabled")
+              :on-click #(>evt [::rf/order-up])}
      (char 0x03A4)]
     [:aside "Create the graph"]]
    [:span

@@ -23,14 +23,16 @@
    :thumb {}
    :active-color :gold
    :graph-data empty-graph
-   :console []})
+   :console []
+   :working false})
 
 (def ^:private location "http://api.are.na/v2/")
 (def ^:private auth "FILL IN YOUR OWN!")
 
 (reg-fx :tap (fn [data] (tap> data)))
-(reg-fx :error (fn [& resp] (.error js/console "ERROR:" resp)))
+(reg-fx :error (fn [resp] (.error js/console "ERROR:" (clj->js resp))))
 (reg-fx :browse (fn [url] (.open js/window url)))
+(reg-fx :blur (fn [] (.blur (.-activeElement js/document))))
 
 ;; Provide a map with, at minimum, :path and :on-success kvs
 ;  :path is a vector of the URI path components to be appended to the API URL
@@ -65,7 +67,7 @@
          accumulation (into accumulation (get (first resp) :contents))]
      (if (< remaining 1)
        {:fx [[:dispatch (conj completion-evt accumulation)]]}
-       {:fx [(when (< 2 pages)
+       {:fx [(when (< 1 pages)
                [:dispatch [::console/log :info "Requesting page" (- pages current) "of" pages]])
              [:dispatch-later
               {:ms 1000
@@ -96,7 +98,7 @@
 
 (reg-event-fx
  ::error
- (fn [_ [_ error]]
+ (fn [_ [_ & error]]
    {:fx [[:error error]]}))
 
 (reg-event-db
@@ -189,11 +191,18 @@
 (reg-event-fx
  ::order-up
  (fn [{:keys [db]} _]
-   (let [id (get-in db [:thumb :id])]
-     (if id
-       {:fx [[:dispatch [::assoc :graph-data empty-graph]]
-             [:dispatch [::order-up-o0 id]]]}
-       {:fx [[:dispatch [::console/log :error "I'm not finding the id of the channel."]]]}))))
+   (let [id (get-in db [:thumb :id])
+         id-unknown [[:dispatch [::console/log :error "I'm not finding the id of the channel."]]]
+         in-progress [[:dispatch [::console/log :error "I'm already working on a graph! Be patient!"]]]
+         continue [[:dispatch [::console/delayed-log :guide 500 "Okay, I'm getting to work"]]
+                   [:dispatch [::assoc :graph-data empty-graph]]
+                   [:blur nil]
+                   [:dispatch [::assoc :working true]]
+                   [:dispatch [::order-up-o0 id]]]]
+     {:fx (cond
+            (not id) id-unknown
+            (:working db) in-progress
+            :else continue)})))
 
 (reg-event-fx
  ::o0-conversation
@@ -227,6 +236,7 @@
      (if (not-empty channels)
        {:fx [[:dispatch [::o1-populate channels]]
              [:dispatch [::o1-connect channels]]
+             [:dispatch [::assoc :working false]] ;; TEMP relocate to end
              #_[:dispatch [::GET {}]]]}
        {:fx [[:dispatch [::console/log :error "There are no channels in the chosen channel?!"]]]}))))
 
