@@ -3,14 +3,13 @@
   (:require [kees.arena-graph.rf :as rf :refer [<sub <get >evt >assoc >GET]]
             [reagent.core :as r]
             [kees.arena-graph.graphs :as graphs]
-            [kees.arena-graph.logic :as logic]
             [kees.arena-graph.rf.console :as console]))
 
 (defn graph
   []
   [graphs/graph (<get :graph-data)])
 
-(defn get-prop
+#_(defn get-prop
   [{:keys [prop-key state-key desc char-val needs]}]
   (let [active? (<get needs)
         channel (<get :channel-slug)
@@ -40,7 +39,7 @@
                 :on-change #(reset! slug (.. % -target -value))
                 :value @slug}]])))
 
-(defn color-picker
+#_(defn color-picker
   []
   (let [color (keyword (<get :active-color))]
     [:span

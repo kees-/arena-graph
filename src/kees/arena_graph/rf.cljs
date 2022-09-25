@@ -104,7 +104,7 @@
  (fn [db [_ k v]]
    (assoc db k v)))
 
-(reg-event-db
+#_(reg-event-db
  ::assoc-prop
  (fn [db [_ state-key prop-key v]]
    (assoc db state-key (prop-key v))))
@@ -143,7 +143,7 @@
  (fn [graph [_ base variance]]
    (update graph :nodes #(mapv merge % (logic/size-variance base variance)))))
 
-(reg-event-db
+#_(reg-event-db
  ::add-node-colors
  [(path :graph-data)]
  (fn [graph-data [_ color]]
