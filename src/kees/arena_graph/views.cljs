@@ -62,11 +62,14 @@
     [:aside "Add varying sizes to each node"]]
    #_[color-picker]
    [:span
-    [:button {:class (when (<get :working) "disabled")
-              :on-click #(>evt [::rf/order-up])}
+    [:button
+     {:class (when (or (<get :working)
+                       (not (<get :thumb :id)))
+               "disabled")
+      :on-click #(>evt [::rf/order-up])}
      (char 0x03A4)]
     [:aside "Create the graph"]]
-   [:span
+   #_[:span
     [:button {:on-click #(>evt [::console/delayed-log :info 500 (random-uuid)])}
      (char 0x03A3)]
     [:aside "Log a message"]]])

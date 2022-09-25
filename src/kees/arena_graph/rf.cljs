@@ -4,13 +4,14 @@
             [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-sub reg-fx path]]
             [day8.re-frame.http-fx]
             [kees.arena-graph.logic :as logic]
-            [kees.arena-graph.rf.console :as console]))
+            [kees.arena-graph.rf.console :as console]
+            [kees.arena-graph.rf.flavor :as flavor]))
 
 ;; ========== SETUP ============================================================
 (def <sub (comp deref re-frame/subscribe))
 (def >evt re-frame/dispatch)
 (def >evt-now re-frame/dispatch-sync)
-(defn <get [k] (<sub [::get k]))
+(defn <get [& k] (<sub [::get k]))
 (defn >assoc [k v] (>evt [::assoc k v]))
 (defn >GET [opts] (>evt [::GET opts]))
 
@@ -24,7 +25,8 @@
    :active-color :gold
    :graph-data empty-graph
    :console []
-   :working false})
+   :working false
+   :flavor {:completed-explanation-seen false}})
 
 (def ^:private location "http://api.are.na/v2/")
 (def ^:private auth "FILL IN YOUR OWN!")
@@ -87,8 +89,7 @@
  ::boot
  (fn [_ _]
    {:db default-db
-    :fx [[:dispatch-later {:ms 2000 :dispatch [::console/delayed-log :guide 900 "Hi!"]}]
-         [:dispatch-later {:ms 4250 :dispatch [::console/delayed-log :guide 1750 "Add a channel to get started."]}]]}))
+    :fx [[:dispatch [::flavor/intro]]]}))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (reg-event-fx
@@ -242,17 +243,14 @@
 
 (reg-event-fx
  ::complete
- (fn [_ _]
+ (fn [{:keys [db]} _]
    {:fx [[:dispatch [::assoc :working false]]
-         [:dispatch-later
-          {:ms 1500
-           :dispatch [::console/delayed-log :guide 3500 "Alright it's done! Enjoy. On the desktop you can hover over nodes to see what channels they represent."]}]
-         [:dispatch-later
-          {:ms 7500
-           :dispatch [::console/delayed-log :guide 3000 "And clicking a node visits its channel if you didn't notice."]}]]}))
+         (if (get-in db [:flavor :completed-explanation-seen])
+           nil
+           [:dispatch [::flavor/completed-explanation]])]}))
 
 ;; ========== SUBSCRIPTIONS ====================================================
 (reg-sub
  ::get
- (fn [db [_ k]]
-   (k db)))
+ (fn [db [_ ks]]
+   (get-in db ks)))

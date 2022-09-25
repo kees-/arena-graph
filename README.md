@@ -14,7 +14,7 @@ Going beyond the second order of connections (single parent channel → children
 
 Contributions are welcome. The UI framework I'm most comfortable with is [re-frame](https://github.com/day8/re-frame), so this whole app is built in clojurescript with re-frame.
 
-Native language additions are easiest, however, the whole JS/React/Node package ecosystem is at arm's reach and running isolated JS scripts on demand (maybe TS too) is pretty easy too.
+Native language additions are easiest, however, the whole JS/React/Node package ecosystem is at arm's reach and running isolated JS scripts on demand (maybe TS too) is also pretty easy.
 
 I haven't published a build yet. It's too rough and I want to stylize the UI to look coherent. You can test it with:
 
