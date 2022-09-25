@@ -15,6 +15,8 @@
 (defn >assoc [k v] (>evt [::assoc k v]))
 (defn >GET [opts] (>evt [::GET opts]))
 
+(def global-per 50)
+
 (def empty-graph
   {:nodes []
    :links []})
@@ -76,7 +78,7 @@
                :dispatch [::GET
                           {:path ["channels" channel "contents"]
                            :params {:page (- pages current)
-                                    :per 100}
+                                    :per global-per}
                            :on-success [::GET-contents-page-loop
                                         pages
                                         current
@@ -220,7 +222,7 @@
  (fn [{:keys [db]} [_ id]]
    (let [thumb (:thumb db)
          length (:length thumb)
-         pages (Math/ceil (* length 0.01))]
+         pages (Math/ceil (/ length global-per))]
      {:fx [[:dispatch [::o0-populate thumb]]
            [:dispatch-later
             {:ms 500
