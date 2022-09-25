@@ -51,7 +51,7 @@
                       (update :on-success vwrap)
                       (update :on-failure vwrap))
          default-opts {:method :get
-                       :timeout 10000
+                       :timeout 20000
                        :format (json-request-format)
                        :response-format (json-response-format {:keywords? true})
                        :on-failure [::error]}
@@ -70,7 +70,7 @@
        {:fx [(when (< 1 pages)
                [:dispatch [::console/log :info "Requesting page" (- pages current) "of" pages]])
              [:dispatch-later
-              {:ms 1000
+              {:ms 1500
                :dispatch [::GET
                           {:path ["channels" channel "contents"]
                            :params {:page (- pages current)
@@ -236,9 +236,20 @@
      (if (not-empty channels)
        {:fx [[:dispatch [::o1-populate channels]]
              [:dispatch [::o1-connect channels]]
-             [:dispatch [::assoc :working false]] ;; TEMP relocate to end
+             [:dispatch [::complete]] ;; TEMP relocate to end
              #_[:dispatch [::GET {}]]]}
        {:fx [[:dispatch [::console/log :error "There are no channels in the chosen channel?!"]]]}))))
+
+(reg-event-fx
+ ::complete
+ (fn [_ _]
+   {:fx [[:dispatch [::assoc :working false]]
+         [:dispatch-later
+          {:ms 1500
+           :dispatch [::console/delayed-log :guide 3500 "Alright it's done! Enjoy. On the desktop you can hover over nodes to see what channels they represent."]}]
+         [:dispatch-later
+          {:ms 7500
+           :dispatch [::console/delayed-log :guide 3000 "And clicking a node visits its channel if you didn't notice."]}]]}))
 
 ;; ========== SUBSCRIPTIONS ====================================================
 (reg-sub
