@@ -1,5 +1,5 @@
 (ns kees.arena-graph.rf.flavor
-  (:require [re-frame.core :as re-frame :refer [reg-event-fx]]
+  (:require [re-frame.core :as re-frame :refer [reg-event-fx path]]
             [kees.arena-graph.rf.console :as console]))
 
 (reg-event-fx
@@ -10,8 +10,10 @@
 
 (reg-event-fx
  ::completed-explanation
- (fn [_ _]
-   {:fx [[:dispatch-later
+ [(path :flavor)]
+ (fn [flavor _]
+   {:db (assoc flavor :completed-explanation-seen true)
+    :fx [[:dispatch-later
           {:ms 1500
            :dispatch [::console/delayed-log :guide 3500 "Alright it's done! Enjoy. On the desktop you can hover over nodes to see what channels they represent."]}]
          [:dispatch-later

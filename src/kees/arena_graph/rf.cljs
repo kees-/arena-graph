@@ -30,7 +30,7 @@
    :working false
    :flavor {:completed-explanation-seen false}})
 
-(def ^:private location "http://api.are.na/v2/")
+(def ^:private location "https://api.are.na/v2/")
 (def ^:private auth "FILL IN YOUR OWN!")
 
 (reg-fx :tap (fn [data] (tap> data)))
