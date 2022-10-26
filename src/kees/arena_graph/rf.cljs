@@ -22,16 +22,19 @@
    :links []})
 
 (def default-db
-  {:channel-slug ""
+  {:graph-data empty-graph
+   :setup {:width 500
+           :height 400}
    :thumb {}
-   :active-color :gold
-   :graph-data empty-graph
    :console []
    :working false
+   :palette-color :gold ; for testing
+   :style {:o1-color :gold-light
+           :o2-color :aqua}
    :flavor {:completed-explanation-seen false}})
 
 (def ^:private location "https://api.are.na/v2/")
-(def ^:private auth "FILL IN YOUR OWN!")
+(def ^:private auth "")
 
 (reg-fx :tap (fn [data] (tap> data)))
 (reg-fx :error (fn [resp] (.error js/console "ERROR:" (clj->js resp))))
@@ -55,16 +58,16 @@
                       (update :on-success vwrap)
                       (update :on-failure vwrap))
          default-opts {:method :get
-                       :timeout 20000
+                       :timeout 15000
                        :format (json-request-format)
                        :response-format (json-response-format {:keywords? true})
-                       :on-failure [::error]}
+                       :on-failure [::console/log :error "Oh no! Something went wrong."]}
          request (-> (merge default-opts supplied {:uri uri})
                      (assoc-in [:headers :authorization] auth))]
      {:fx [[:http-xhrio request]]})))
 
 (reg-event-fx
- ::GET-contents-page-loop
+ ::o1-GET-loop
  (fn [{:keys [db]} [_ pages remaining accumulation completion-evt & resp]]
    (let [channel (get-in db [:thumb :id])
          current (dec remaining)
@@ -74,17 +77,52 @@
        {:fx [(when (< 1 pages)
                [:dispatch [::console/log :info "Requesting page" (- pages current) "of" pages]])
              [:dispatch-later
-              {:ms 1500
+              {:ms 500
                :dispatch [::GET
                           {:path ["channels" channel "contents"]
                            :params {:page (- pages current)
                                     :per global-per}
-                           :on-success [::GET-contents-page-loop
+                           :on-success [::o1-GET-loop
                                         pages
                                         current
                                         accumulation
                                         completion-evt]
-                           :on-failure [::error ":( Something went wrong in the loop"]}]}]]}))))
+                           :on-failure [::console/log :error ":( Something went wrong in the loop"]}]}]]}))))
+
+(reg-event-fx
+ ::o2-GET-node-loop
+ (fn [_ [_
+         {:keys [id pages remaining accumulation completion-evt]
+          :or {accumulation []}}
+         & resp]]
+   (let [current (dec remaining)
+         accumulation (into accumulation (:contents (first resp)))]
+     (if (< remaining 1)
+       {:fx [[:dispatch (conj completion-evt accumulation)]]}
+       (let [next-args {:id id
+                        :pages pages
+                        :remaining current
+                        :accumulation accumulation
+                        :completion-evt completion-evt}]
+         {:fx [(when (< 1 pages)
+                 [:dispatch [::console/log :info "Requesting page" (- pages current) "of" pages]])
+               [:dispatch-later
+                {:ms 750
+                 :dispatch [::GET
+                            {:path ["channels" id "contents"]
+                             :params {:page (- pages current)
+                                      :per global-per}
+                             :on-success [::o2-GET-node-loop next-args]
+                             :on-failure [::GET-error next-args]}]}]]})))))
+
+(reg-event-fx
+ ::GET-error
+ (fn [_ [_ next-args resp]]
+   (let [{:keys [response]} resp]
+     {:fx [[::flavor/request-error (:code response)]
+           [:dispatch-later
+            {:ms 2000
+             :dispatch [::o2-GET-node-loop (update next-args :remaining dec)]}]]})))
 
 ;; ========== EFFECTS ==========================================================
 (reg-event-fx
@@ -99,6 +137,7 @@
  (fn [_ [_ data]]
    {:fx [[:tap data]]}))
 
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (reg-event-fx
  ::error
  (fn [_ [_ & error]]
@@ -108,11 +147,6 @@
  ::assoc
  (fn [db [_ k v]]
    (assoc db k v)))
-
-#_(reg-event-db
- ::assoc-prop
- (fn [db [_ state-key prop-key v]]
-   (assoc db state-key (prop-key v))))
 
 (reg-event-fx
  ::select-channel-success
@@ -125,8 +159,9 @@
 (reg-event-fx
  ::select-channel
  (fn [_ [_ query]]
-   (if-let [slug (re-find #"[-a-z0-9]+$" query)]
-     {:fx [[:dispatch [::console/log :info "Changing channel to:" slug]]
+   (if-let [slug (re-find #"[-_a-z0-9]+$" query)]
+     {:fx [[:blur]
+           [:dispatch [::console/log :info "Changing channel to:" slug]]
            [:dispatch [::GET {:path ["channels" slug "thumb"]
                               :on-success [::select-channel-success]}]]]}
      {:fx [[:dispatch [::console/log :error "Are you sure that channel name is valid?"]]]})))
@@ -142,18 +177,6 @@
          url (apply str "https://are.na/" (interpose "/" path))]
      {:fx [[:browse url]]})))
 
-#_(reg-event-db
- ::add-node-sizes
- [(path :graph-data)]
- (fn [graph [_ base variance]]
-   (update graph :nodes #(mapv merge % (logic/size-variance base variance)))))
-
-#_(reg-event-db
- ::add-node-colors
- [(path :graph-data)]
- (fn [graph-data [_ color]]
-   (update graph-data :nodes #(mapv merge % (logic/hex-maps color)))))
-
 ;; Call with a thumb request
 (reg-event-db
  ::o0-populate
@@ -162,20 +185,10 @@
    (let [node-keys [:id :slug :title :owner_slug :base_class]
          node (-> thumb
                   (select-keys node-keys)
-                  (merge (logic/size-variant 4 0.5)
-                         (logic/hex-map :gold)
+                  (merge (logic/size-variant 3.5 1)
+                         (logic/hex-map :static-var-ui)
                          {:order 0}))]
      (update data :nodes conj node))))
-
-(reg-event-db
- ::o1-connect
- (fn [db [_ channels]]
-   (let [id (get-in db [:thumb :id])
-         links (mapv #(hash-map :source (:id %)
-                                :target id
-                                :color (logic/hex :pink))
-                     channels)]
-     (update-in db [:graph-data :links] into links))))
 
 ;; Call with a seq of channel maps
 (reg-event-db
@@ -185,12 +198,39 @@
    (let [node-keys [:id :slug :title :owner_slug :base_class]
          nodes (mapv
                 #(-> (select-keys % node-keys)
-                     (merge (logic/size-variant 1.25 0.5)
-                            (logic/hex-map :pink)
+                     (merge (logic/size-variant 0.75 1)
+                            (logic/hex-map :gold-light)
                             {:order 1}))
                 channels)]
      (update data :nodes into nodes))))
 
+(reg-event-db
+ ::connect
+ [(path :graph-data)]
+ (fn [data [_ arg-map]]
+   (let [{:keys [id channels color]} arg-map
+         links (mapv
+                #(hash-map :source (:id %)
+                           :target id
+                           :color (logic/hex color))
+                channels)]
+     (update data :links into links))))
+
+(reg-event-db
+ ::o2-populate
+ [(path :graph-data)]
+ (fn [data [_ arg-map]]
+   (let [{:keys [channels color]} arg-map
+         node-keys [:id :slug :title :owner_slug :base_class]
+         nodes (mapv
+                #(-> (select-keys % node-keys)
+                     (merge (logic/size-variant 0.5 0.5)
+                            (logic/hex-map color)
+                            {:order 2}))
+                channels)]
+     (update data :nodes logic/into-by-key nodes :id))))
+
+;; Block or continue initialization of graph crawl
 (reg-event-fx
  ::order-up
  (fn [{:keys [db]} _]
@@ -201,24 +241,14 @@
                    [:dispatch [::assoc :graph-data empty-graph]]
                    [:blur nil]
                    [:dispatch [::assoc :working true]]
-                   [:dispatch [::order-up-o0 id]]]]
+                   [:dispatch [::o0-order-up id]]]]
      {:fx (cond
             (not id) id-unknown
             (:working db) in-progress
             :else continue)})))
 
 (reg-event-fx
- ::o0-conversation
- (fn [_ [_ pages]]
-   (let [medium [[:dispatch [::console/delayed-log :guide 500 "Wow, that's some channel! This will take a little time."]]]
-         large [[:dispatch [::console/delayed-log :guide 500 "That's a decent sized channel. I'll start looking now."]]]]
-     {:fx (cond
-            (< 5 pages) medium
-            (< 2 pages) large
-            :else [])})))
-
-(reg-event-fx
- ::order-up-o0
+ ::o0-order-up
  (fn [{:keys [db]} [_ id]]
    (let [thumb (:thumb db)
          length (:length thumb)
@@ -226,32 +256,63 @@
      {:fx [[:dispatch [::o0-populate thumb]]
            [:dispatch-later
             {:ms 500
-             :dispatch [::o0-conversation pages]}]
+             :dispatch [::flavor/size-shaming pages]}]
            [:dispatch-later
             {:ms 2000
-             :dispatch [::GET-contents-page-loop
-                        pages pages [] [::order-up-o1 id]]}]]})))
+             :dispatch [::o1-GET-loop
+                        pages pages [] [::o1-order-up id]]}]]})))
 
 (reg-event-fx
- ::order-up-o1
- (fn [_ [_ id contents]]
-   (let [channels (filterv #(= "Channel" (:base_class %)) contents)]
+ ::o1-order-up
+ (fn [{:keys [db]} [_ id contents]]
+   (let [color (get-in db [:style :o1-color])
+         channels (filterv #(= (:base_class %) "Channel") contents)]
      (if (not-empty channels)
        {:fx [[:dispatch [::o1-populate channels]]
-             [:dispatch [::o1-connect channels]]
-             [:dispatch [::complete]] ;; TEMP relocate to end
-             #_[:dispatch [::GET {}]]]}
+             [:dispatch [::connect {:id id
+                                    :channels channels
+                                    :color color}]]
+             [:dispatch [::o2-order-loop channels]]]}
        {:fx [[:dispatch [::console/log :error "There are no channels in the chosen channel?!"]]]}))))
 
 (reg-event-fx
+ ::o2-order-loop
+ (fn [_ [_ remaining-channels]]
+   (let [[active & remaining] remaining-channels
+         {:keys [length id]} active
+         pages (Math/ceil (/ length global-per))]
+     {:fx [[:dispatch [::console/log :guide "Processing channel" (:slug active)]]
+           [:dispatch [::o2-GET-node-loop
+                       {:id id
+                        :pages pages
+                        :remaining pages
+                        :completion-evt [::o2-order-up id remaining]}]]]})))
+
+(reg-event-fx
+ ::o2-order-up
+ (fn [{:keys [db]} [_ id remaining contents]]
+   (let [color (get-in db [:style :o2-color])
+         channels (filterv #(= (:base_class %) "Channel") contents)]
+     {:fx [[:dispatch [::o2-populate {:channels channels
+                                      :color color}]]
+           [:dispatch [::connect {:id id
+                                  :channels channels
+                                  :color color}]]
+           (if remaining
+             [:dispatch [::o2-order-loop remaining]]
+             [:dispatch [::complete]])]})))
+
+;; Display flavor and return app to prepared state
+(reg-event-fx
  ::complete
  (fn [{:keys [db]} _]
-   {:fx [[:dispatch [::assoc :working false]]
-         (if (get-in db [:flavor :completed-explanation-seen])
-           nil
+   {:db (assoc db :working false)
+    :fx [(if (get-in db [:flavor :completed-explanation-seen])
+           [:dispatch [::console/delayed-log :guide 1000 "Complete!"]]
            [:dispatch [::flavor/completed-explanation]])]}))
 
 ;; ========== SUBSCRIPTIONS ====================================================
+;; Use via the shortcut <get
 (reg-sub
  ::get
  (fn [db [_ ks]]

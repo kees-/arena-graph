@@ -1,18 +1,21 @@
 (ns kees.arena-graph.graphs
   (:require ["react-force-graph-2d" :as ForceGraph2D]
-            [kees.arena-graph.rf :as rf :refer [>evt]]))
+            [kees.arena-graph.rf :as rf :refer [<get >evt]]))
 
-(defn graph
+#_{:clj-kondo/ignore [:unused-binding]}
+(defn element
   [data]
-  [:> ForceGraph2D
-   {:graphData data
-    :width 500
-    :height 400
-    :minZoom 1
-    :maxZoom 5
-    :d3VelocityDecay 0.5
-    :nodeVal :size
-    :nodeLabel :title
-    :nodeColor :color
-    :onNodeClick #(>evt [::rf/graph-node->visit %1])
-    :linkWidth 1}])
+  (let [{:keys [width height]} (<get :setup)]
+    (fn [data]
+      [:> ForceGraph2D
+       {:graphData data
+        :width width
+        :height height
+        :minZoom 0.1
+        :maxZoom 5
+        :d3VelocityDecay 0.5
+        :nodeVal :size
+        :nodeLabel :title
+        :nodeColor :color
+        :onNodeClick #(>evt [::rf/graph-node->visit %1])
+        :linkWidth 1}])))

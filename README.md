@@ -40,21 +40,24 @@ I haven't published a build yet. It's too rough and I want to stylize the UI to 
 - [x] [re-frame-http-fx](https://github.com/day8/re-frame-http-fx) to better integrate [are.na API](https://dev.are.na/documentation/channels) requests into re-frame handlers ([1](https://day8.github.io/re-frame/EffectfulHandlers/) [2](https://day8.github.io/re-frame/Effects/))
 - [x] Better status output
 - [ ] Better division between state, logic, and flavor
-- [ ] Separate request flows
+- [x] Separate request flows
   - [x] Original channel attributes / 0 order
   - [x] Directly connected channels / 1st order
-  - [ ] Mutually connected channels / 2nd order
-- [ ] Node connectivity
+  - [x] Mutually connected channels / 2nd order
+- [x] Node connectivity
   - [x] All 1st order connect to 0 order
-  - [ ] All 2nd order connect to relevant connections(!) not parents
+  - [x] All 2nd order connect to relevant connections(!) not parents
 - [x] Request pagination
 - [x] Node styling
   - [x] Node size within variance by order
   - [x] Node random color within variance by order
-- [ ] Oauth(?) realized it's unnecessary for an initial build
+- [x] Oauth(?) realized it's unnecessary for an initial build
+- [ ] Add hover info block
 - [ ] UI refine
-  - [ ] Kill nonessential inputs
-  - [ ] Re-theme
+  - [x] Kill nonessential inputs
+  - [x] Re-theme
+  - [ ] More advanced button visibility state
+  - [ ] Funny anim block
   - [ ] Maximize content in space
   - [ ] Better loading
 

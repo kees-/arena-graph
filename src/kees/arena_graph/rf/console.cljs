@@ -1,16 +1,11 @@
 (ns kees.arena-graph.rf.console
   (:require [re-frame.core :as re-frame :refer [reg-event-fx reg-fx reg-sub]]))
 
-(reg-fx
- :scroll
- (fn [id]
-   (let [el (js/document.getElementById id)]
-     (.scrollIntoView el #js{:top (.-offsetHeight id)}))))
-
+;; ========== DOM HICCUP =======================================================
 (defn- timestamp
   []
   (let [now (.toLocaleTimeString (js/Date.))]
-    (str "[" (re-find #"[^\s]+" now) "]")))
+    (re-find #"[^\s]+" now)))
 
 (defn- li
   [type message]
@@ -23,11 +18,22 @@
         (interpose \space)
         (into [:span]))])
 
+;; #console-anchor is an empty fake el to target when scrolling to bottom
+(defn element
+  []
+  (let [messages @(re-frame/subscribe [::messages])]
+    [:div#console
+     (into
+      [:ul [:li#console-anchor [:span#typing "..."]]]
+      messages)]))
+
+(reg-fx
+ :scroll
+ (fn [id]
+   (let [el (js/document.getElementById id)]
+     (.scrollIntoView el #js{:top (.-offsetHeight id)}))))
+
 ;; Boilerplate for toggling visibility
-(reg-event-fx
- ::show
- (fn [_ [_ id]]
-   {:fx [[:show id]]}))
 (reg-fx
  :show
  (fn [id]
@@ -37,9 +43,13 @@
  (fn [id]
    (-> id js/document.getElementById .-classList (.remove "visible"))))
 (reg-event-fx
+ ::show
+ (fn [_ [_ id]]
+   {:fx [[:show id]]}))
+(reg-event-fx
  ::hide
  (fn [_ [_ id]]
-   {:fx [[:hide id]]}))
+   {:fx [[:hide id false]]}))
 
 ;; Display a little typing icon in the console for ms
 (reg-event-fx
@@ -59,22 +69,12 @@
 ;; Display a typing message for ms and log something immediately after
 (reg-event-fx
  ::delayed-log
- (fn [_ [_ type ms message]]
+ (fn [_ [_ type ms & message]]
    {:fx [[:dispatch [::typing ms]]
-         [:dispatch-later {:ms ms :dispatch [::log type message]}]]}))
-;; Issue! Only one arg to message. & message would  wrap too many vectors.
+         [:dispatch-later {:ms ms :dispatch (into [::log type] message)}]]}))
 
 ;; New sub instead of <get in the face of circular ns deps
 (reg-sub
  ::messages
  (fn [db _]
    (:console db)))
-
-;; #console-anchor is an empty fake el to target when scrolling to bottom
-(defn element
-  []
-  (let [messages @(re-frame/subscribe [::messages])]
-    [:div
-     (into
-      [:ul#console [:li#console-anchor [:span#typing "..."]]]
-      messages)]))
