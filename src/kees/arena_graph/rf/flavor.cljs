@@ -5,8 +5,12 @@
 (reg-event-fx
  ::intro
  (fn [_ _]
-   {:fx [[:dispatch-later {:ms 1500 :dispatch [::console/delayed-log :guide 900 "Hi!"]}]
-         [:dispatch-later {:ms 3250 :dispatch [::console/delayed-log :guide 2250 "I'll map out connections on the website are.na. Add a channel's URL to get started."]}]]}))
+   (let [intro "I'll map out connections on the website are.na. Add a channel's URL to get started."]
+     {:fx [[:dispatch-later
+            [{:ms 1500
+              :dispatch [::console/delayed-log :guide 900 "Hi!"]}
+             {:ms 3250
+              :dispatch [::console/delayed-log :guide 2250 intro]}]]]})))
 
 ;; A subtle nudge about what size of channel may work better.
 (reg-event-fx
@@ -26,11 +30,10 @@
  (fn [{:keys [db]} _]
    {:db (assoc-in db [:flavor :completed-explanation-seen] true)
     :fx [[:dispatch-later
-          {:ms 1500
-           :dispatch [::console/delayed-log :guide 3500 "Alright it's done! Enjoy. On the desktop you can hover over nodes to see what channels they represent."]}]
-         [:dispatch-later
-          {:ms 7500
-           :dispatch [::console/delayed-log :guide 3000 "And clicking a node visits its channel if you didn't notice."]}]]}))
+          [{:ms 1500
+            :dispatch [::console/delayed-log :guide 3500 "Alright it's done! Enjoy. On the desktop you can hover over nodes to see what channels they represent."]}
+           {:ms 7500
+            :dispatch [::console/delayed-log :guide 3000 "And clicking a node visits its channel if you didn't notice."]}]]]}))
 
 (reg-event-fx
  ::request-error

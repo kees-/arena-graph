@@ -153,14 +153,17 @@
  (fn [{:keys [db]} [_ response]]
    {:db (assoc db :thumb response)
     :fx [[:dispatch-later
-          {:ms 500
-           :dispatch [::console/delayed-log :guide 750 "Great! Looks like a valid channel."]}]]}))
+          [{:ms 500
+            :dispatch [::console/delayed-log :guide 750 "Great! Looks like a valid channel."]}
+           {:ms 1750
+            :dispatch [::assoc :working false]}]]]}))
 
 (reg-event-fx
  ::select-channel
- (fn [_ [_ query]]
+ (fn [{:keys [db]} [_ query]]
    (if-let [slug (re-find #"[-_a-z0-9]+$" query)]
-     {:fx [[:blur]
+     {:db (assoc db :working true)
+      :fx [[:blur nil]
            [:dispatch [::console/log :info "Changing channel to:" slug]]
            [:dispatch [::GET {:path ["channels" slug "thumb"]
                               :on-success [::select-channel-success]}]]]}
@@ -256,8 +259,7 @@
      {:fx [[:dispatch [::o0-populate thumb]]
            [:dispatch-later
             {:ms 500
-             :dispatch [::flavor/size-shaming pages]}]
-           [:dispatch-later
+             :dispatch [::flavor/size-shaming pages]}
             {:ms 2000
              :dispatch [::o1-GET-loop
                         pages pages [] [::o1-order-up id]]}]]})))

@@ -35,12 +35,6 @@ input, button {
   display: initial !important;
 }
 
-@keyframes blink {
-  40% {
-    opacity: 0;
-  }
-}
-
 /* ========== PAGE-WIDE CHANGES ============================================= */
 html {
   background-color: var(--bg);
@@ -118,10 +112,19 @@ section {
 
 #typing {
   display: none;
-  animation: blink 0.85s step-start infinite;
+  animation: blink 0.8s step-start infinite;
   font-size: 1.1rem;
   line-height: 1.1rem;
   margin-bottom: 0.2rem;
+}
+
+@keyframes blink {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0;
+  }
 }
 
 #console aside {

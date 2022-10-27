@@ -33,7 +33,7 @@
    (let [el (js/document.getElementById id)]
      (.scrollIntoView el #js{:top (.-offsetHeight id)}))))
 
-;; Boilerplate for toggling visibility
+;; Toggling display of an element (that's invisible by default)
 (reg-fx
  :show
  (fn [id]
@@ -42,20 +42,26 @@
  :hide
  (fn [id]
    (-> id js/document.getElementById .-classList (.remove "visible"))))
-(reg-event-fx
- ::show
- (fn [_ [_ id]]
-   {:fx [[:show id]]}))
+;; Believe an fx-wrapping event is necessary for 
 (reg-event-fx
  ::hide
  (fn [_ [_ id]]
-   {:fx [[:hide id false]]}))
+   {:fx [[:hide id]]}))
+
+(reg-fx
+ :restart-anim
+ (fn [id]
+   (let [el (js/document.getElementById id)]
+     (set! (.. el -style -animationName) "none")
+     (js/window.requestAnimationFrame
+      #(set! (.. el -style -animationName) "")))))
 
 ;; Display a little typing icon in the console for ms
 (reg-event-fx
  ::typing
  (fn [_ [_ ms]]
-   {:fx [[:dispatch [::show "typing"]]
+   {:fx [[:show "typing"]
+         [:restart-anim "typing"]
          [:scroll "console-anchor"]
          [:dispatch-later {:ms ms :dispatch [::hide "typing"]}]]}))
 
