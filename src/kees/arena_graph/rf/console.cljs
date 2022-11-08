@@ -27,6 +27,7 @@
       [:ul [:li#console-anchor [:span#typing "..."]]]
       messages)]))
 
+;; ========== LOGIC ============================================================
 (reg-fx
  :scroll
  (fn [id]

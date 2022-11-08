@@ -258,11 +258,11 @@
          pages (Math/ceil (/ length global-per))]
      {:fx [[:dispatch [::o0-populate thumb]]
            [:dispatch-later
-            {:ms 500
-             :dispatch [::flavor/size-shaming pages]}
-            {:ms 2000
-             :dispatch [::o1-GET-loop
-                        pages pages [] [::o1-order-up id]]}]]})))
+            [{:ms 500
+              :dispatch [::flavor/size-shaming pages]}
+             {:ms 2000
+              :dispatch [::o1-GET-loop
+                         pages pages [] [::o1-order-up id]]}]]]})))
 
 (reg-event-fx
  ::o1-order-up
