@@ -40,6 +40,33 @@
           {:on-click #(>evt [::rf/order-up])}
           "create"])])))
 
+(defn- item
+  [label value]
+  [:div.item
+   [:div label]
+   [:div.value
+    {:style {:color (logic/hex :aqua)}}
+    value]])
+
+(defn- channel-info
+  []
+  (let [{:keys [title]
+         {:keys [username]} :user} (<get :hovered-node)]
+    [:div#channel-info
+     [item "Channel:" title]
+     [item "Owner:" username]]))
+
+(defn- sidebar
+  []
+  (let [active (<get :active)
+        gif (str "url(../_asset/gif/"
+                 (logic/which-gif)
+                 ")")]
+    [:div#sidebar
+     [:div#loader
+      (when active
+        {:style {:background-image gif}})]]))
+
 #_{:clj-kondo/ignore [:unused-private-var]}
 (defn- palette
   "Generates an 8x8 color palette to test the acceptable color ranges"
@@ -91,9 +118,12 @@
    [:header
     [:h1 "amoeba-2"]]
    [:div#container
-    [:section "channel info"]
+    #_[info]
+    [sidebar]
     [:div#canvas
      [graph]]]
-   [console/element]
+   [:div#under
+    [console/element]
+    [channel-info]]
    [input]
    #_[palette]])

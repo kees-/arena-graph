@@ -57,7 +57,7 @@ h1 {
 main {
   display: flex;
   flex-flow: column nowrap;
-  max-width: 45rem;
+  max-width: 65rem;
   border: 3px solid var(--ui);
 }
 
@@ -75,20 +75,14 @@ header {
   justify-content: center;
 }
 
-section {
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--ui);
-  flex-grow: 1;
-}
-
 #canvas {
-  flex-grow: 3;
   border: 1px solid var(--ui);
 }
 
 /* ========== CONSOLE ======================================================= */
 #console {
-  max-width: 39rem;
+  /* max-width: 39rem; */
+  grid-area: 1 / 1;
 }
 
 #console ul {
@@ -106,6 +100,7 @@ section {
 #console li {
   display: flex;
   flex-flow: row nowrap;
+  max-width: 39rem;
   padding: 0.1rem 0.3rem 0;
   gap: 0.5rem;
 }
@@ -175,4 +170,43 @@ section {
   background: var(--bg);
   color: var(--ui);
   cursor: pointer;
+}
+
+/* ========== CHANNEL INFORMATION =========================================== */
+#channel-info {
+  display: none;
+  z-index: 2;
+  grid-area: 1 / 1;
+  flex: 1 1 8rem;
+  color: var(--bg);
+  background: var(--ui);
+}
+
+#channel-info .item {
+  display: flex;
+  flex-flow: row nowrap;
+}
+
+#under {
+  display: grid;
+  grid-template-rows: 1fr;
+}
+
+#sidebar {
+  display: flex;
+  width: 127px;
+  flex-direction: column-reverse;
+  border: 1px solid var(--ui);
+}
+
+#loader {
+  width: 125px;
+  height: 125px;
+  outline: 1px solid var(--ui);
+  background: var(--bg);
+  background-size: contain;
+}
+
+#loader.active {
+  background-image: url("../_asset/gif/3.gif") !important;
 }

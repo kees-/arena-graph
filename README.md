@@ -57,9 +57,9 @@ I haven't published a build yet. It's too rough and I want to stylize the UI to 
   - [x] Kill nonessential inputs
   - [x] Re-theme
   - [ ] More advanced button visibility state
-  - [ ] Funny anim block
+  - [x] Funny anim block
   - [ ] Maximize content in space
-  - [ ] Better loading
+  - [ ] Better loading / button visibility logic
 
 </details>
 

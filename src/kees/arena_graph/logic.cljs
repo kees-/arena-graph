@@ -44,6 +44,17 @@
   [base variant]
   {:size (+ base (* variant (rand)))})
 
+(defn which-gif
+  "Weighted gif selector"
+  []
+  (let [n (rand)]
+    (cond
+      (< n 0.05) "sparkle.gif"
+      (< n 0.15) "scroll.gif"
+      (< n 0.25) "ripples.gif"
+      (< n 0.5) "planet.gif"
+      :else "tan.gif")))
+
 (defn into-by-key
   "Combines two vectors of maps, skipping repeated values of key k"
   [v1 v2 k]

@@ -35,19 +35,20 @@
      (.scrollIntoView el #js{:top (.-offsetHeight id)}))))
 
 ;; Toggling display of an element (that's invisible by default)
+;; Set display: none on original element
 (reg-fx
- :show
+ ::show
  (fn [id]
    (-> id js/document.getElementById .-classList (.add "visible"))))
 (reg-fx
- :hide
+ ::hide
  (fn [id]
    (-> id js/document.getElementById .-classList (.remove "visible"))))
-;; Believe an fx-wrapping event is necessary for 
+;; Believe an fx-wrapping event is necessary for delayed dispatch
 (reg-event-fx
  ::hide
  (fn [_ [_ id]]
-   {:fx [[:hide id]]}))
+   {:fx [[::hide id]]}))
 
 (reg-fx
  :restart-anim
@@ -61,7 +62,7 @@
 (reg-event-fx
  ::typing
  (fn [_ [_ ms]]
-   {:fx [[:show "typing"]
+   {:fx [[::show "typing"]
          [:restart-anim "typing"]
          [:scroll "console-anchor"]
          [:dispatch-later {:ms ms :dispatch [::hide "typing"]}]]}))

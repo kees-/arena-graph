@@ -26,15 +26,20 @@
    :setup {:width 500
            :height 400}
    :thumb {}
+   :hovered-node nil
    :console []
-   :working false
-   :palette-color :gold ; for testing
+   :working false ; whether to display "create" button / allow creation
+   :active false ; whether to display gif panel
+   #_#_ :palette-color :aqua ; for testing
    :style {:o1-color :gold-light
            :o2-color :aqua}
    :flavor {:completed-explanation-seen false}})
 
 (def ^:private location "https://api.are.na/v2/")
 (def ^:private auth "")
+
+(def node-keys
+  [:id :slug :title :owner_slug :base_class :user])
 
 (reg-fx :tap (fn [data] (tap> data)))
 (reg-fx :error (fn [resp] (.error js/console "ERROR:" (clj->js resp))))
@@ -180,13 +185,21 @@
          url (apply str "https://are.na/" (interpose "/" path))]
      {:fx [[:browse url]]})))
 
+(reg-event-fx
+ ::hover-node
+ (fn [{:keys [db]} [_ node]]
+   (let [node-map (js->clj node :keywordize-keys true)]
+     {:db (assoc db :hovered-node node-map)
+      :fx (if node-map
+            [[::console/show "channel-info"]]
+            [[::console/hide "channel-info"]])})))
+
 ;; Call with a thumb request
 (reg-event-db
  ::o0-populate
  [(path :graph-data)]
  (fn [data [_ thumb]]
-   (let [node-keys [:id :slug :title :owner_slug :base_class]
-         node (-> thumb
+   (let [node (-> thumb
                   (select-keys node-keys)
                   (merge (logic/size-variant 3.5 1)
                          (logic/hex-map :static-var-ui)
@@ -198,8 +211,7 @@
  ::o1-populate
  [(path :graph-data)]
  (fn [data [_ channels]]
-   (let [node-keys [:id :slug :title :owner_slug :base_class]
-         nodes (mapv
+   (let [nodes (mapv
                 #(-> (select-keys % node-keys)
                      (merge (logic/size-variant 0.75 1)
                             (logic/hex-map :gold-light)
@@ -224,7 +236,6 @@
  [(path :graph-data)]
  (fn [data [_ arg-map]]
    (let [{:keys [channels color]} arg-map
-         node-keys [:id :slug :title :owner_slug :base_class]
          nodes (mapv
                 #(-> (select-keys % node-keys)
                      (merge (logic/size-variant 0.5 0.5)
@@ -244,6 +255,7 @@
                    [:dispatch [::assoc :graph-data empty-graph]]
                    [:blur nil]
                    [:dispatch [::assoc :working true]]
+                   [:dispatch [::assoc :active true]]
                    [:dispatch [::o0-order-up id]]]]
      {:fx (cond
             (not id) id-unknown
@@ -308,7 +320,9 @@
 (reg-event-fx
  ::complete
  (fn [{:keys [db]} _]
-   {:db (assoc db :working false)
+   {:db (-> db
+            (assoc :working false)
+            (assoc :active false))
     :fx [(if (get-in db [:flavor :completed-explanation-seen])
            [:dispatch [::console/delayed-log :guide 1000 "Complete!"]]
            [:dispatch [::flavor/completed-explanation]])]}))
