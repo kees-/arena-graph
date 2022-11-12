@@ -15,6 +15,29 @@
 (defn >assoc [k v] (>evt [::assoc k v]))
 (defn >GET [opts] (>evt [::GET opts]))
 
+;; Source!: https://clojureverse.org/t/9104/9
+(def ^:private url-query-params
+  (let [query-arr (-> js/window
+                      .-location
+                      .-href
+                      js/URL.
+                      .-searchParams
+                      js/URLSearchParams.
+                      js/Array.from)
+        f (fn [m [k v]]
+            (update m (keyword k) (fn [cur]
+                                    (cond
+                                      (nil? cur) v
+                                      (vector? cur) (conj cur v)
+                                      :else [cur v]))))]
+    (reduce f {} query-arr)))
+
+
+(def ^:private falsy-strs
+  ["n" "no" "none" "false" "skip"])
+(def ^:private skip-intro?
+  (some #{(:intro url-query-params)} falsy-strs))
+
 (def global-per 50)
 
 (def empty-graph
@@ -28,6 +51,8 @@
    :thumb {}
    :hovered-node nil
    :console []
+   :skip-intro? skip-intro?
+   :initialized? false ; whether the app has finished its startup and intro
    :working? false ; whether to display "create" button / allow creation
    :active? false ; whether to display gif panel
    #_#_ :palette-color :aqua ; for testing
@@ -133,8 +158,9 @@
 (reg-event-fx
  ::boot
  (fn [_ _]
-   {:db default-db
-    :fx [[:dispatch [::flavor/intro]]]}))
+   (let [skip? (:skip-intro? default-db)]
+     {:db default-db
+      :fx [[:dispatch [::flavor/intro skip?]]]})))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (reg-event-fx
@@ -147,6 +173,13 @@
  (fn [db [_ k v]]
    (assoc db k v)))
 
+(reg-event-db
+ ::set-busy
+ (fn [db [_ bool]]
+   (-> db
+       (assoc :working? bool)
+       (assoc :active? bool))))
+
 (reg-event-fx
  ::select-channel-success
  (fn [{:keys [db]} [_ response]]
@@ -155,17 +188,25 @@
           [{:ms 500
             :dispatch [::console/delayed-log :guide 750 "Great! Looks like a valid channel."]}
            {:ms 1750
-            :dispatch [::assoc :working? false]}]]]}))
+            :dispatch [::set-busy false]}]]]}))
+
+(reg-event-fx
+ ::select-channel-failure
+ (fn [_ [_ response]]
+   (let [code (-> response :response :code)]
+     {:fx [[:dispatch [::flavor/generic-error code]]]})))
 
 (reg-event-fx
  ::select-channel
  (fn [{:keys [db]} [_ query]]
+   (js/console.info query)
    (if-let [slug (re-find #"[-_a-z0-9]+$" query)]
      {:db (assoc db :working? true)
       :fx [[:blur nil]
            [:dispatch [::console/log :info "Changing channel to:" slug]]
            [:dispatch [::GET {:path ["channels" slug "thumb"]
-                              :on-success [::select-channel-success]}]]]}
+                              :on-success [::select-channel-success]
+                              :on-failure [::select-channel-failure]}]]]}
      {:fx [[:dispatch [::console/log :error "Are you sure that channel name is valid?"]]]})))
 
 ;; Format a web URL for either channels or blocks and visit them in the browser
@@ -248,8 +289,7 @@
          continue [[:dispatch [::console/delayed-log :guide 500 "Okay, I'm getting to work"]]
                    [:dispatch [::assoc :graph-data empty-graph]]
                    [:blur nil]
-                   [:dispatch [::assoc :working? true]]
-                   [:dispatch [::assoc :active? true]]
+                   [:dispatch [::set-busy true]]
                    [:dispatch [::o0-order-up id]]]]
      {:fx (cond
             (not id) id-unknown
@@ -281,10 +321,8 @@
                                     :channels channels
                                     :color color}]]
              [:dispatch [::o2-order-loop channels]]]}
-       {:db (-> db
-                (assoc :active? false)
-                (assoc :working? false))
-        :fx [[:dispatch [::console/log :error "There are no channels in the chosen channel?!"]]]}))))
+       {:fx [[:dispatch [::console/log :error "There are no channels in the chosen channel?!"]]
+             [:dispatch [::set-busy false]]]}))))
 
 (reg-event-fx
  ::o2-order-loop
@@ -317,12 +355,10 @@
 (reg-event-fx
  ::complete
  (fn [{:keys [db]} _]
-   {:db (-> db
-            (assoc :working? false)
-            (assoc :active? false))
-    :fx [(if (get-in db [:flavor :completed-explanation-seen])
+   {:fx [(if (get-in db [:flavor :completed-explanation-seen])
            [:dispatch [::console/delayed-log :guide 1000 "Complete!"]]
-           [:dispatch [::flavor/completed-explanation]])]}))
+           [:dispatch [::flavor/completed-explanation]])
+         [:dispatch [::set-busy false]]]}))
 
 ;; ========== SUBSCRIPTIONS ====================================================
 ;; Use via the shortcut <get

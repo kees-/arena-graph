@@ -40,6 +40,13 @@
           {:on-click #(>evt [::rf/order-up])}
           "create"])])))
 
+(defn controls-cover
+  []
+  (let [initialized? (<get :initialized?)]
+    (if initialized?
+      [:div#controls-cover.controls-cover-revealed]
+      [:div#controls-cover])))
+
 (defn- item
   [label value]
   [:div.item
@@ -123,5 +130,7 @@
    [:div#under
     [console/element]
     [channel-info]]
-   [input]
+   [:div#input-container
+    [controls-cover]
+    [input]]
    #_[palette]])

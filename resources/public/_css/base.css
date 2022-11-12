@@ -137,7 +137,14 @@ header {
 }
 
 /* ========== CONTROLS ====================================================== */
+#input-container {
+  display: grid;
+  grid-template-rows: 1fr;
+  overflow: hidden;
+}
+
 #controls {
+  grid-area: 1 / 1;
   border: 2px solid var(--ui);
 }
 
@@ -168,6 +175,17 @@ header {
   background: var(--bg);
   color: var(--ui);
   cursor: pointer;
+}
+
+#controls-cover {
+  z-index: 2;
+  background: var(--ui);
+  grid-area: 1 / 1;
+}
+
+.controls-cover-revealed {
+  transition: transform 0.25s ease-in;
+  transform: translateY(100%);
 }
 
 /* ========== CHANNEL INFORMATION =========================================== */
