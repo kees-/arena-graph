@@ -16,7 +16,7 @@ Contributions are welcome. The UI framework I'm most comfortable with is [re-fra
 
 Native language additions are easiest, however, the whole JS/React/Node package ecosystem is at arm's reach and running isolated JS scripts on demand (maybe TS too) is also pretty easy.
 
-I haven't published a build yet. It's too rough and I want to stylize the UI to look coherent. You can test it with:
+The current build is manually published and may not reflect the most recent changes. You can test the latest with:
 
 - A IDE supporting Clojure
 - A web browser with CORS security policies disabled. <details>

@@ -44,16 +44,31 @@
   [base variant]
   {:size (+ base (* variant (rand)))})
 
+;; Vector of 2-tuples [a b] where a is chance out of 1 that gif b is chosen.
+;; Sum of numbers must be < 1
+(def ^:private gif-chances
+  (sort
+   [[0.02 "takase.gif"]
+    [0.05 "sparkle.gif"]
+    [0.1 "scroll.gif"]
+    [0.1 "ripples.gif"]
+    [0.25 "planet.gif"]]))
+
+;; 1 - the sum of gif-chances is the probability of the default gif playing.
+(def ^:private default-gif
+  "tan.gif")
+
 (defn which-gif
-  "Weighted gif selector"
   []
   (let [n (rand)]
-    (cond
-      (< n 0.05) "sparkle.gif"
-      (< n 0.15) "scroll.gif"
-      (< n 0.25) "ripples.gif"
-      (< n 0.5) "planet.gif"
-      :else "tan.gif")))
+    (loop [chances gif-chances
+           acc 0]
+      (let [[[probability filename] & remaining] chances
+            acc (+ acc probability)]
+        (cond
+          (empty? chances) default-gif
+          (< n acc) filename
+          :else (recur remaining acc))))))
 
 (defn into-by-key
   "Combines two vectors of maps, skipping repeated values of key k"

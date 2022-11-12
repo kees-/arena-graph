@@ -33,7 +33,7 @@
          [:button
           {:on-click confirm}
           (char 0x2192)])
-       (when (and (not (<get :working))
+       (when (and (not (<get :working?))
                   (= "" @value)
                   (<get :thumb :id))
          [:button
@@ -58,13 +58,11 @@
 
 (defn- sidebar
   []
-  (let [active (<get :active)
-        gif (str "url(../_asset/gif/"
-                 (logic/which-gif)
-                 ")")]
+  (let [active? (<get :active?)
+        gif (str "url(_asset/gif/" (logic/which-gif) ")")]
     [:div#sidebar
      [:div#loader
-      (when active
+      (when active?
         {:style {:background-image gif}})]]))
 
 #_{:clj-kondo/ignore [:unused-private-var]}

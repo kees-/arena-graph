@@ -28,8 +28,8 @@
    :thumb {}
    :hovered-node nil
    :console []
-   :working false ; whether to display "create" button / allow creation
-   :active false ; whether to display gif panel
+   :working? false ; whether to display "create" button / allow creation
+   :active? false ; whether to display gif panel
    #_#_ :palette-color :aqua ; for testing
    :style {:o1-color :gold-light
            :o2-color :aqua}
@@ -92,7 +92,7 @@
                                         current
                                         accumulation
                                         completion-evt]
-                           :on-failure [::console/log :error ":( Something went wrong in the loop"]}]}]]}))))
+                           :on-failure [::console/log :error ":( Something went wrong"]}]}]]}))))
 
 (reg-event-fx
  ::o2-GET-node-loop
@@ -142,12 +142,6 @@
  (fn [_ [_ data]]
    {:fx [[:tap data]]}))
 
-#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
-(reg-event-fx
- ::error
- (fn [_ [_ & error]]
-   {:fx [[:error error]]}))
-
 (reg-event-db
  ::assoc
  (fn [db [_ k v]]
@@ -161,13 +155,13 @@
           [{:ms 500
             :dispatch [::console/delayed-log :guide 750 "Great! Looks like a valid channel."]}
            {:ms 1750
-            :dispatch [::assoc :working false]}]]]}))
+            :dispatch [::assoc :working? false]}]]]}))
 
 (reg-event-fx
  ::select-channel
  (fn [{:keys [db]} [_ query]]
    (if-let [slug (re-find #"[-_a-z0-9]+$" query)]
-     {:db (assoc db :working true)
+     {:db (assoc db :working? true)
       :fx [[:blur nil]
            [:dispatch [::console/log :info "Changing channel to:" slug]]
            [:dispatch [::GET {:path ["channels" slug "thumb"]
@@ -254,12 +248,12 @@
          continue [[:dispatch [::console/delayed-log :guide 500 "Okay, I'm getting to work"]]
                    [:dispatch [::assoc :graph-data empty-graph]]
                    [:blur nil]
-                   [:dispatch [::assoc :working true]]
-                   [:dispatch [::assoc :active true]]
+                   [:dispatch [::assoc :working? true]]
+                   [:dispatch [::assoc :active? true]]
                    [:dispatch [::o0-order-up id]]]]
      {:fx (cond
             (not id) id-unknown
-            (:working db) in-progress
+            (:working? db) in-progress
             :else continue)})))
 
 (reg-event-fx
@@ -287,7 +281,10 @@
                                     :channels channels
                                     :color color}]]
              [:dispatch [::o2-order-loop channels]]]}
-       {:fx [[:dispatch [::console/log :error "There are no channels in the chosen channel?!"]]]}))))
+       {:db (-> db
+                (assoc :active? false)
+                (assoc :working? false))
+        :fx [[:dispatch [::console/log :error "There are no channels in the chosen channel?!"]]]}))))
 
 (reg-event-fx
  ::o2-order-loop
@@ -321,8 +318,8 @@
  ::complete
  (fn [{:keys [db]} _]
    {:db (-> db
-            (assoc :working false)
-            (assoc :active false))
+            (assoc :working? false)
+            (assoc :active? false))
     :fx [(if (get-in db [:flavor :completed-explanation-seen])
            [:dispatch [::console/delayed-log :guide 1000 "Complete!"]]
            [:dispatch [::flavor/completed-explanation]])]}))

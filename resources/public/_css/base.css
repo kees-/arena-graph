@@ -57,7 +57,7 @@ h1 {
 main {
   display: flex;
   flex-flow: column nowrap;
-  max-width: 65rem;
+  max-width: 635px;
   border: 3px solid var(--ui);
 }
 
@@ -81,7 +81,6 @@ header {
 
 /* ========== CONSOLE ======================================================= */
 #console {
-  /* max-width: 39rem; */
   grid-area: 1 / 1;
 }
 
@@ -100,7 +99,6 @@ header {
 #console li {
   display: flex;
   flex-flow: row nowrap;
-  max-width: 39rem;
   padding: 0.1rem 0.3rem 0;
   gap: 0.5rem;
 }
