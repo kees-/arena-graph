@@ -18,5 +18,7 @@
         :nodeLabel :title
         :nodeColor :color
         :onNodeClick #(>evt [::rf/graph-node->visit %1])
-        :onNodeHover #(>evt [::rf/hover-node %])
+        :onNodeHover #(>evt [::rf/hover-node %1])
+        :onNodeDrag #(>evt [::rf/hover-node %1])
+        :onNodeDragEnd #(>evt [::rf/hover-node nil])
         :linkWidth 1}])))

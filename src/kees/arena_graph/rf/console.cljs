@@ -35,20 +35,21 @@
      (.scrollIntoView el #js{:top (.-offsetHeight id)}))))
 
 ;; Toggling display of an element (that's invisible by default)
-;; Set display: none on original element
+;; Set display: none on original element if using class "display"
+;; Set visibility: hidden on original element if using class "visible"
 (reg-fx
  ::show
- (fn [id]
-   (-> id js/document.getElementById .-classList (.add "visible"))))
+ (fn [[id tmp-class]]
+   (-> id js/document.getElementById .-classList (.add tmp-class))))
 (reg-fx
  ::hide
- (fn [id]
-   (-> id js/document.getElementById .-classList (.remove "visible"))))
+ (fn [[id tmp-class]]
+   (-> id js/document.getElementById .-classList (.remove tmp-class))))
 ;; Believe an fx-wrapping event is necessary for delayed dispatch
 (reg-event-fx
  ::hide
- (fn [_ [_ id]]
-   {:fx [[::hide id]]}))
+ (fn [_ [_ [id tmp-class]]]
+   {:fx [[::hide [id tmp-class]]]}))
 
 (reg-fx
  :restart-anim
@@ -62,10 +63,10 @@
 (reg-event-fx
  ::typing
  (fn [_ [_ ms]]
-   {:fx [[::show "typing"]
+   {:fx [[::show ["typing" "displayed"]]
          [:restart-anim "typing"]
          [:scroll "console-anchor"]
-         [:dispatch-later {:ms ms :dispatch [::hide "typing"]}]]}))
+         [:dispatch-later {:ms ms :dispatch [::hide ["typing" "displayed"]]}]]}))
 
 ;; Log a message to the console DOM element (not browser console)
 (reg-event-fx

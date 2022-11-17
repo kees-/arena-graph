@@ -31,8 +31,12 @@ input, button {
   all: unset;
 }
 
-.visible {
+.displayed {
   display: initial !important;
+}
+
+.visible {
+  visibility: visible !important;
 }
 
 /* ========== PAGE-WIDE CHANGES ============================================= */
@@ -87,7 +91,7 @@ header {
 #console ul {
   display: flex;
   flex-flow: column-reverse nowrap;
-  height: 6rem;
+  height: 7rem;
   flex: 0 1 40rem;
   padding-top: 0.5rem;
   border: 1px solid var(--ui);
@@ -164,11 +168,12 @@ header {
 }
 
 #controls button {
-  padding: 0.15rem 0.3rem;
+  padding: 0.15rem 0.15rem 0.15rem 0.3rem;
+  margin-right: -1px;
   background: var(--ui);
   color: var(--bg);
   outline: 2px solid var(--ui);
-  font-size: 2rem;
+  font-size: 1.6rem;
   line-height: 1.1rem;
 }
 #controls button:hover {
@@ -189,22 +194,34 @@ header {
 }
 
 /* ========== CHANNEL INFORMATION =========================================== */
-#channel-info {
-  display: none;
+#channel-info-container {
+  visibility: hidden;
   z-index: 2;
   grid-area: 1 / 1;
-  flex: 1 1 8rem;
-  color: var(--bg);
-  background: var(--ui);
+  display: flex;
+  flex-flow: column nowrap;
+  flex-grow: 1;
+  background: var(--bg);
+  border: 1px solid var(--ui);
+}
+
+#channel-info {
+  margin: 0.75rem;
+  padding: 0 0.5rem;
+  flex-grow: 1;
+  background-color: var(--bg);
 }
 
 #channel-info .item {
   display: flex;
   flex-flow: row nowrap;
+  gap: 0.25rem;
 }
 
+/* ========== EXTRANEOUS SIDEBAR ============================================ */
 #under {
   display: grid;
+  height: 7rem;
   grid-template-rows: 1fr;
 }
 
@@ -215,10 +232,40 @@ header {
   border: 1px solid var(--ui);
 }
 
+#loader-container {
+  display: grid;
+  overflow: hidden;
+  grid-template-columns: repeat(2, 50%);
+  grid-template-rows: 1fr;
+  gap: 1px;
+  outline: 1px solid var(--ui);
+}
+
+#loader-cover-left {
+  transition: transform 0.5s;
+  z-index: 2;
+  grid-area: 1 / 1 / 1 / 1;
+  background: var(--ui);
+}
+.loader-cover-left-revealed {
+  transition: transform 0.5s;
+  transform: translateX(-100%) !important;
+}
+#loader-cover-right {
+  transition: transform 0.5s;
+  z-index: 2;
+  grid-area: 1 / 2 / 1 / 2;
+  background-color: var(--ui);
+}
+.loader-cover-right-revealed {
+  transition: transform 0.5s;
+  transform: translateX(100%) !important;
+}
+
 #loader {
+  grid-area: 1 / 1 / 1 / 2;
   width: 125px;
   height: 125px;
-  outline: 1px solid var(--ui);
   background: var(--bg);
   background-size: contain;
 }

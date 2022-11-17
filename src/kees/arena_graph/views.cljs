@@ -31,7 +31,8 @@
          :value @value}]
        (when (not= "" @value)
          [:button
-          {:on-click confirm}
+          {:on-click confirm
+           :style {:font-size "2rem"}}
           (char 0x2192)])
        (when (and (not (<get :working?))
                   (= "" @value)
@@ -48,32 +49,41 @@
       [:div#controls-cover])))
 
 (defn- item
-  [label value]
+  [label value color]
   [:div.item
+   {:style {:color color}}
    [:div label]
-   [:div.value
-    {:style {:color (logic/hex :aqua)}}
-    value]])
+   [:div.value value]])
 
 (defn- channel-info
   []
-  (let [{:keys [title]
-         {:keys [username]} :user} (<get :hovered-node)]
-    [:div#channel-info
-     [item "Channel:" title]
-     [item "Owner:" username]]))
+  (let [node (<get :hovered-node)
+        {:keys [title color length]
+         {:keys [username]} :user} node]
+    [:div#channel-info-container
+     [:div#channel-info
+      {:style {:border (str "0.45rem solid" color)}}
+      [item "Channel:" title color]
+      [item "Owner:" username color]
+      [item "Connections:" length color]]]))
 
-(defn- sidebar
+(defn- loader
   []
   (let [active? (<get :active?)
         gif (str "url(_asset/gif/" (logic/which-gif) ")")]
-    [:div#sidebar
+    [:div#loader-container
+     [:div#loader-cover-left
+      (when active?
+        {:class "loader-cover-left-revealed"})]
+     [:div#loader-cover-right
+      (when active?
+        {:class "loader-cover-right-revealed"})]
      [:div#loader
       (when active?
         {:style {:background-image gif}})]]))
 
 #_{:clj-kondo/ignore [:unused-private-var]}
-(defn- palette
+#_(defn- palette
   "Generates an 8x8 color palette to test the acceptable color ranges"
   []
   (let [palette-color (<get :palette-color)
@@ -123,13 +133,13 @@
    [:header
     [:h1 "amoeba-2"]]
    [:div#container
-    #_[info]
-    [sidebar]
+    [:div#sidebar
+     [loader]]
     [:div#canvas
      [graph]]]
    [:div#under
-    [console/element]
-    [channel-info]]
+    [channel-info]
+    [console/element]]
    [:div#input-container
     [controls-cover]
     [input]]

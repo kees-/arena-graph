@@ -34,7 +34,7 @@
 
 
 (def ^:private falsy-strs
-  ["n" "no" "none" "false" "skip"])
+  ["n" "no" "none" "false" "skip" "hide"])
 (def ^:private skip-intro?
   (some #{(:intro url-query-params)} falsy-strs))
 
@@ -64,7 +64,7 @@
 (def ^:private auth "")
 
 (def node-keys
-  [:id :slug :title :owner_slug :base_class :user])
+  [:id :slug :title :owner_slug :base_class :user :length])
 
 (reg-fx :tap (fn [data] (tap> data)))
 (reg-fx :error (fn [resp] (.error js/console "ERROR:" (clj->js resp))))
@@ -199,7 +199,6 @@
 (reg-event-fx
  ::select-channel
  (fn [{:keys [db]} [_ query]]
-   (js/console.info query)
    (if-let [slug (re-find #"[-_a-z0-9]+$" query)]
      {:db (assoc db :working? true)
       :fx [[:blur nil]
@@ -226,8 +225,8 @@
    (let [node-map (js->clj node :keywordize-keys true)]
      {:db (assoc db :hovered-node node-map)
       :fx (if node-map
-            [[::console/show "channel-info"]]
-            [[::console/hide "channel-info"]])})))
+            [[::console/show ["channel-info-container" "visible"]]]
+            [[::console/hide ["channel-info-container" "visible"]]])})))
 
 ;; Call with a thumb request
 (reg-event-db
@@ -320,26 +319,30 @@
              [:dispatch [::connect {:id id
                                     :channels channels
                                     :color color}]]
-             [:dispatch [::o2-order-loop channels]]]}
+             [:dispatch [::o2-order-loop (count channels) channels]]]}
        {:fx [[:dispatch [::console/log :error "There are no channels in the chosen channel?!"]]
              [:dispatch [::set-busy false]]]}))))
 
 (reg-event-fx
  ::o2-order-loop
- (fn [_ [_ remaining-channels]]
+ (fn [_ [_ total remaining-channels]]
    (let [[active & remaining] remaining-channels
-         {:keys [length id]} active
-         pages (Math/ceil (/ length global-per))]
-     {:fx [[:dispatch [::console/log :guide "Processing channel" (:slug active)]]
+         {:keys [length id slug]} active
+         pages (Math/ceil (/ length global-per))
+         current-num (- total (count remaining-channels) -1)
+         processing-str (str "Processing channel "
+                             current-num " of " total
+                             ": " slug)]
+     {:fx [[:dispatch [::console/log :guide processing-str]]
            [:dispatch [::o2-GET-node-loop
                        {:id id
                         :pages pages
                         :remaining pages
-                        :completion-evt [::o2-order-up id remaining]}]]]})))
+                        :completion-evt [::o2-order-up total id remaining]}]]]})))
 
 (reg-event-fx
  ::o2-order-up
- (fn [{:keys [db]} [_ id remaining contents]]
+ (fn [{:keys [db]} [_ total id remaining contents]]
    (let [color (get-in db [:style :o2-color])
          channels (filterv #(= (:base_class %) "Channel") contents)]
      {:fx [[:dispatch [::o2-populate {:channels channels
@@ -348,7 +351,7 @@
                                   :channels channels
                                   :color color}]]
            (if remaining
-             [:dispatch [::o2-order-loop remaining]]
+             [:dispatch [::o2-order-loop total remaining]]
              [:dispatch [::complete]])]})))
 
 ;; Display flavor and return app to prepared state

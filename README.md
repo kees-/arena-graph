@@ -40,6 +40,7 @@ The current build is manually published and may not reflect the most recent chan
 - [x] [re-frame-http-fx](https://github.com/day8/re-frame-http-fx) to better integrate [are.na API](https://dev.are.na/documentation/channels) requests into re-frame handlers ([1](https://day8.github.io/re-frame/EffectfulHandlers/) [2](https://day8.github.io/re-frame/Effects/))
 - [x] Better status output
 - [ ] Better division between state, logic, and flavor
+  - [ ] Redo GET loops
 - [x] Separate request flows
   - [x] Original channel attributes / 0 order
   - [x] Directly connected channels / 1st order
@@ -52,7 +53,8 @@ The current build is manually published and may not reflect the most recent chan
   - [x] Node size within variance by order
   - [x] Node random color within variance by order
 - [x] Oauth(?) realized it's unnecessary for an initial build
-- [ ] Add hover info block
+- [x] Add hover info block
+  - [ ] Flow layout and add visuals
 - [ ] UI refine
   - [x] Kill nonessential inputs
   - [x] Re-theme
