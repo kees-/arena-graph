@@ -227,8 +227,9 @@ header {
 
 #sidebar {
   display: flex;
-  width: 127px;
-  flex-direction: column-reverse;
+  flex-flow: column wrap;
+  gap: 1px;
+  width: 127px; /* THIS WILL HAVE TO CHANGE ! */
   border: 1px solid var(--ui);
 }
 
@@ -272,4 +273,29 @@ header {
 
 #loader.active {
   background-image: url("../_asset/gif/3.gif") !important;
+}
+
+#progress-bar-container {
+  display: flex;
+  flex-flow: row nowrap;
+  flex-grow: 1;
+}
+
+.progress-bar-outer {
+  display: flex;
+  flex-flow: column-reverse nowrap;
+  flex-grow: 1;
+}
+
+#progress-bar-inner {
+  display: flex;
+  flex-flow: column nowrap;
+  flex-grow: 1;
+  border-left: 1px solid var(--ui);
+  border-right: 1px solid var(--ui);
+}
+
+.progress-bar-filler {
+  background: var(--ui);
+  transition: flex-basis 0.35s ease-in-out;
 }

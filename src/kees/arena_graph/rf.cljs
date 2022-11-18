@@ -44,6 +44,12 @@
   {:nodes []
    :links []})
 
+(def default-progress
+  {:current 0
+   :total 0
+   :channel-total 0
+   :channel-current 0})
+
 (def default-db
   {:graph-data empty-graph
    :setup {:width 500
@@ -55,6 +61,7 @@
    :initialized? false ; whether the app has finished its startup and intro
    :working? false ; whether to display "create" button / allow creation
    :active? false ; whether to display gif panel
+   :progress default-progress
    #_#_ :palette-color :aqua ; for testing
    :style {:o1-color :gold-light
            :o2-color :aqua}
@@ -104,7 +111,10 @@
          accumulation (into accumulation (get (first resp) :contents))]
      (if (< remaining 1)
        {:fx [[:dispatch (conj completion-evt accumulation)]]}
-       {:fx [(when (< 1 pages)
+       {:db (-> db
+                (assoc-in [:progress :channel-current] (- pages current))
+                (assoc-in [:progress :channel-total] pages))
+        :fx [(when (< 1 pages)
                [:dispatch [::console/log :info "Requesting page" (- pages current) "of" pages]])
              [:dispatch-later
               {:ms 500
@@ -289,6 +299,7 @@
                    [:dispatch [::assoc :graph-data empty-graph]]
                    [:blur nil]
                    [:dispatch [::set-busy true]]
+                   [:dispatch [::assoc :progress default-progress]]
                    [:dispatch [::o0-order-up id]]]]
      {:fx (cond
             (not id) id-unknown
@@ -325,7 +336,7 @@
 
 (reg-event-fx
  ::o2-order-loop
- (fn [_ [_ total remaining-channels]]
+ (fn [{:keys [db]} [_ total remaining-channels]]
    (let [[active & remaining] remaining-channels
          {:keys [length id slug]} active
          pages (Math/ceil (/ length global-per))
@@ -333,7 +344,10 @@
          processing-str (str "Processing channel "
                              current-num " of " total
                              ": " slug)]
-     {:fx [[:dispatch [::console/log :guide processing-str]]
+     {:db (-> db
+              (assoc-in [:progress :current] current-num)
+              (assoc-in [:progress :total] total))
+      :fx [[:dispatch [::console/log :guide processing-str]]
            [:dispatch [::o2-GET-node-loop
                        {:id id
                         :pages pages

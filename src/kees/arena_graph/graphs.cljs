@@ -15,7 +15,7 @@
         :maxZoom 5
         :d3VelocityDecay 0.5
         :nodeVal :size
-        :nodeLabel :title
+        #_#_:nodeLabel :title
         :nodeColor :color
         :onNodeClick #(>evt [::rf/graph-node->visit %1])
         :onNodeHover #(>evt [::rf/hover-node %1])

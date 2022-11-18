@@ -41,7 +41,7 @@
           {:on-click #(>evt [::rf/order-up])}
           "create"])])))
 
-(defn controls-cover
+(defn- controls-cover
   []
   (let [initialized? (<get :initialized?)]
     (if initialized?
@@ -67,6 +67,40 @@
       [item "Owner:" username color]
       [item "Connections:" length color]]]))
 
+(defn- %-str
+  [current total]
+  (if (zero? total)
+    "0%"
+    (-> (/ current total 0.01)
+        js/Math.round
+        (str "%"))))
+
+(defn- progress-bar-outer
+  []
+  (let [{:keys [channel-current channel-total]} (<get :progress)
+        progress-%-str (%-str channel-current channel-total)]
+    (js/console.info "Current:" channel-current "Total:" channel-total)
+    (js/console.info progress-%-str)
+    [:div.progress-bar-outer
+     [:div.progress-bar-filler
+      {:style {:flex-basis progress-%-str}}]]))
+
+(defn- progress-bar-inner
+  []
+  (let [{:keys [current total]} (<get :progress)
+        progress-%-str (%-str current total)]
+    [:div#progress-bar-inner
+     [:div.progress-bar-filler
+      {:style {:border "1px solid var(--bg)"
+               :flex-basis progress-%-str}}]]))
+
+(defn- progress-bar
+  []
+  [:div#progress-bar-container
+   [progress-bar-outer]
+   [progress-bar-inner]
+   [progress-bar-outer]])
+
 (defn- loader
   []
   (let [active? (<get :active?)
@@ -83,7 +117,8 @@
         {:style {:background-image gif}})]]))
 
 #_{:clj-kondo/ignore [:unused-private-var]}
-#_(defn- palette
+#_
+(defn- palette
   "Generates an 8x8 color palette to test the acceptable color ranges"
   []
   (let [palette-color (<get :palette-color)
@@ -134,6 +169,7 @@
     [:h1 "amoeba-2"]]
    [:div#container
     [:div#sidebar
+     [progress-bar]
      [loader]]
     [:div#canvas
      [graph]]]
