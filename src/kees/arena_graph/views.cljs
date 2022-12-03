@@ -79,9 +79,8 @@
   []
   (let [{:keys [channel-current channel-total]} (<get :progress)
         progress-%-str (%-str channel-current channel-total)]
-    (js/console.info "Current:" channel-current "Total:" channel-total)
-    (js/console.info progress-%-str)
-    [:div.progress-bar-outer
+    [:div.progress-bar
+     {:style {:flex-direction "column"}}
      [:div.progress-bar-filler
       {:style {:flex-basis progress-%-str}}]]))
 
@@ -89,17 +88,20 @@
   []
   (let [{:keys [current total]} (<get :progress)
         progress-%-str (%-str current total)]
-    [:div#progress-bar-inner
+    [:div.progress-bar
+     {:style {:flex-direction "column-reverse"}}
      [:div.progress-bar-filler
-      {:style {:border "1px solid var(--bg)"
-               :flex-basis progress-%-str}}]]))
+      {:style {:flex-basis progress-%-str}}]]))
 
 (defn- progress-bar
   []
-  [:div#progress-bar-container
-   [progress-bar-outer]
-   [progress-bar-inner]
-   [progress-bar-outer]])
+  (let [sep (fn [n] [:div.sep {:style {:flex-grow n}}])]
+    [:div#progress-outer-container
+     [:div#progress-background-lines
+      [sep 27] [sep 46] [sep 27]]
+     [:div#progress-bar-container
+      [progress-bar-outer]
+      [progress-bar-inner]]]))
 
 (defn- loader
   []

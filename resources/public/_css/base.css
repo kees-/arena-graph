@@ -275,27 +275,49 @@ header {
   background-image: url("../_asset/gif/3.gif") !important;
 }
 
+#progress-outer-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+  flex-grow: 1;
+  align-content: stretch;
+}
+
+#progress-background-lines {
+  grid-area: 1 / 1 / 1 / 1;
+  display: flex;
+  flex-flow: row nowrap;
+  gap: 1px;
+  background: var(--ui);
+}
+
+#progress-background-lines .sep {
+  flex-grow: 1;
+  background: var(--bg);
+}
+
 #progress-bar-container {
+  grid-area: 1 / 1 / 1 / 1;
+  z-index: 2;
   display: flex;
   flex-flow: row nowrap;
   flex-grow: 1;
+  justify-content: center;
+  align-items: center;
+  gap: 18%;
 }
 
-.progress-bar-outer {
+.progress-bar {
+  height: 90%;
   display: flex;
-  flex-flow: column-reverse nowrap;
-  flex-grow: 1;
-}
-
-#progress-bar-inner {
-  display: flex;
-  flex-flow: column nowrap;
-  flex-grow: 1;
-  border-left: 1px solid var(--ui);
-  border-right: 1px solid var(--ui);
+  flex-basis: 28%;
+  flex-wrap: nowrap;
+  background: var(--bg);
+  outline: 1px solid var(--ui);
 }
 
 .progress-bar-filler {
+  margin: 2px;
   background: var(--ui);
   transition: flex-basis 0.35s ease-in-out;
 }

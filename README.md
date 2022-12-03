@@ -62,6 +62,7 @@ The current build is manually published and may not reflect the most recent chan
   - [x] Funny anim block
   - [ ] Maximize content in space
   - [ ] Better loading / button visibility logic
+- [ ] Mobile layout fix
 
 </details>
 

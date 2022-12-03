@@ -1,0 +1,75 @@
+name: Build, sync, invalidate
+
+# NEEDS:
+#   Secrets:
+#     AWS_ACCESS_KEY_ID
+#     AWS_SECRET_ACCESS_KEY
+#     AWS_REGION
+#     AWS_S3_BUCKET
+#     AWS_CLOUDFRONT_DIST
+# UPDATE:
+#   rm paths
+#   s3 sync parameters
+#   invalidation parameters
+
+on:
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Cache (NPM)
+        uses: actions/cache@main
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: ${{ runner.os }}-node-modules-
+      - name: Cache (shadow-cljs)
+        uses: actions/cache@main
+        with:
+          path: .shadow-cljs
+          key: ${{ runner.os }}-shadow-cljs-${{ hashFiles('**/shadow-cljs.edn') }}
+          restore-keys: ${{ runner.os }}-shadow-cljs-
+
+      - name: Build
+        run: |
+          npm i
+          npm run release
+      
+      - name: Purge
+        run: |
+          rm -fv resources/public/_js/compiled/manifest.edn
+          rm -rfv resources/public/_js/compiled/cljs-runtime
+
+      - name: AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Sync
+        uses: badsyntax/github-action-aws-s3@master
+        id: sync-html-s3
+        with:
+          bucket: ${{ secrets.AWS_S3_BUCKET }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          action: 'sync'
+          src-dir: './resources/public'
+          prefix: 'projects/g02-graph'
+          files-glob: '*'
+
+      - name: Invalidate
+        uses: badsyntax/github-action-aws-cloudfront@master
+        with:
+          distribution-id: ${{ secrets.AWS_CLOUDFRONT_DIST }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          include-origin-prefix: false
+          origin-prefix: ''
+          invalidate-paths: '/projects/g02-graph/*'
+          default-root-object: 'index.html'
