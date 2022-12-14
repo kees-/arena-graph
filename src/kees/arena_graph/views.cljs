@@ -11,6 +11,16 @@
   []
   [graphs/element (<get :graph-data)])
 
+(defn- canvas-cover
+  []
+  (let [covered? (<get :canvas-covered?)]
+    [:div#canvas-cover
+     {:style {:padding "0.25rem"}
+      :class (when covered? "canvas-covered")}
+     [:div
+      [:img {:src "_asset/logo.png"
+             :draggable false}]]]))
+
 (defn- input
   "Panel of text input and buttons"
   []
@@ -44,9 +54,8 @@
 (defn- controls-cover
   []
   (let [initialized? (<get :initialized?)]
-    (if initialized?
-      [:div#controls-cover.controls-cover-revealed]
-      [:div#controls-cover])))
+    [:div#controls-cover
+     {:class (when initialized? "controls-cover-revealed")}]))
 
 (defn- item
   [label value color]
@@ -63,7 +72,7 @@
     [:div#channel-info-container
      [:div#channel-info
       {:style {:border (str "0.45rem solid" color)}}
-      [item "Channel:" title color]
+      [item "Channel:" title #_"usuuuuuuuuuuuuuuuuupeprepreprps instanslyey long channnnnnnnnnnnnnelll name this is soooo long 12 2 3 4 5 i hate this user" color]
       [item "Owner:" username color]
       [item "Connections:" length color]]]))
 
@@ -75,39 +84,56 @@
         js/Math.round
         (str "%"))))
 
-(defn- progress-bar-outer
+(defn progress-bar-filler
+  [basis flex-direction]
+  [:div.progress-bar-filler
+   {:style {:flex-basis basis
+            :flex-direction flex-direction}}])
+
+(defn- progress-bar-1
   []
   (let [{:keys [channel-current channel-total]} (<get :progress)
+        vertical? (<get :vertical-layout?)
         progress-%-str (%-str channel-current channel-total)]
     [:div.progress-bar
-     {:style {:flex-direction "column"}}
-     [:div.progress-bar-filler
-      {:style {:flex-basis progress-%-str}}]]))
+     {:style {:flex-direction (if vertical? "row-reverse" "column")
+              (if vertical? :width :height) "90%"}}
+     [progress-bar-filler
+      progress-%-str
+      (if vertical? "row" "column")]]))
 
-(defn- progress-bar-inner
+(defn- progress-bar-2
   []
   (let [{:keys [current total]} (<get :progress)
+        vertical? (<get :vertical-layout?)
         progress-%-str (%-str current total)]
     [:div.progress-bar
-     {:style {:flex-direction "column-reverse"}}
-     [:div.progress-bar-filler
-      {:style {:flex-basis progress-%-str}}]]))
+     {:style {:flex-direction (if vertical? "row" "column-reverse")
+              (if vertical? :width :height) "90%"}}
+     [progress-bar-filler
+      progress-%-str
+      (if vertical? "row-reverse" "column-reverse")]]))
 
 (defn- progress-bar
   []
-  (let [sep (fn [n] [:div.sep {:style {:flex-grow n}}])]
+  (let [sep (fn [n] [:div.sep {:style {:flex-grow n}}])
+        vertical? (<get :vertical-layout?)]
     [:div#progress-outer-container
      [:div#progress-background-lines
+      {:style {:flex-direction (if vertical? "column" "row")}}
       [sep 27] [sep 46] [sep 27]]
      [:div#progress-bar-container
-      [progress-bar-outer]
-      [progress-bar-inner]]]))
+      {:style {:flex-direction (if vertical? "column" "row")}}
+      [progress-bar-1]
+      [progress-bar-2]]]))
 
 (defn- loader
   []
   (let [active? (<get :active?)
+        vertical? (<get :vertical-layout?)
         gif (str "url(_asset/gif/" (logic/which-gif) ")")]
     [:div#loader-container
+     {:style {:max-width (if vertical? 100 125)}}
      [:div#loader-cover-left
       (when active?
         {:class "loader-cover-left-revealed"})]
@@ -115,10 +141,43 @@
       (when active?
         {:class "loader-cover-right-revealed"})]
      [:div#loader
-      (when active?
-        {:style {:background-image gif}})]]))
+      {:style {:width (if vertical? 100 125)
+               :height (if vertical? 100 125)
+               :background-image (when active? gif)}}]]))
 
-#_{:clj-kondo/ignore [:unused-private-var]}
+(defn- sidebar
+  []
+  (let [vertical? (<get :vertical-layout?)]
+    [:div#sidebar
+     {:style {:flex-direction (if vertical? "row" "column")
+              :flex-grow (if vertical? "1" "0")}}
+     [progress-bar]
+     [loader]]))
+
+(defn- under
+  []
+  (let [vertical? (<get :vertical-layout?)
+        screen-width (<get :screen-width)]
+    [:div#under
+     {:style {:max-width (if vertical?
+                           (js/Math.floor (* 0.92 screen-width))
+                           629)}}
+     [channel-info]
+     [console/element]]))
+
+(defn- nav
+  []
+  [:nav
+   [:span>a.nav-button {:href "https://github.com/kees-/arena-graph"
+                        :target "_blank"}
+    [:div#github]]
+   [:span>a.nav-button {:href "https://www.are.na/block/19423227"
+                        :target "_blank"}
+    [:div#arena]]
+   [:span>button.nav-button
+    {:on-click #(>evt [::rf/toggle-canvas-cover])}
+    [:div#close]]])
+
 #_
 (defn- palette
   "Generates an 8x8 color palette to test the acceptable color ranges"
@@ -168,16 +227,15 @@
 (defn main []
   [:main
    [:header
-    [:h1 "amoeba-2"]]
+    [:h1 (<sub [::rf/version])]
+    [nav]]
    [:div#container
-    [:div#sidebar
-     [progress-bar]
-     [loader]]
-    [:div#canvas
-     [graph]]]
-   [:div#under
-    [channel-info]
-    [console/element]]
+    [sidebar]
+    [:div#canvas-container
+     [canvas-cover]
+     [:div#canvas
+      [graph]]]]
+   [under]
    [:div#input-container
     [controls-cover]
     [input]]

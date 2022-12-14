@@ -1,7 +1,7 @@
 (ns kees.arena-graph.rf
   (:require [ajax.core :refer [json-request-format json-response-format]]
             [clojure.string :as s]
-            [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-sub reg-fx path]]
+            [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-sub reg-fx reg-cofx inject-cofx path]]
             [day8.re-frame.http-fx]
             [kees.arena-graph.logic :as logic]
             [kees.arena-graph.rf.console :as console]
@@ -32,6 +32,13 @@
                                       :else [cur v]))))]
     (reduce f {} query-arr)))
 
+(reg-cofx
+ :screen-width
+ (fn [cofx]
+   (let [width (.-innerWidth js/window)]
+     (-> cofx
+         (assoc :screen-width width)
+         (assoc :vertical-layout? (<= width 666))))))
 
 (def ^:private falsy-strs
   ["n" "no" "none" "false" "skip" "hide"])
@@ -52,12 +59,12 @@
 
 (def default-db
   {:graph-data empty-graph
-   :setup {:width 500
-           :height 400}
    :thumb {}
    :hovered-node nil
    :console []
+   :version 2
    :skip-intro? skip-intro?
+   :canvas-covered? false
    :initialized? false ; whether the app has finished its startup and intro
    :working? false ; whether to display "create" button / allow creation
    :active? false ; whether to display gif panel
@@ -167,9 +174,11 @@
 ;; ========== EFFECTS ==========================================================
 (reg-event-fx
  ::boot
- (fn [_ _]
-   (let [skip? (:skip-intro? default-db)]
-     {:db default-db
+ [(inject-cofx :screen-width)]
+ (fn [cofx _]
+   (let [skip? (:skip-intro? default-db)
+         layout (select-keys cofx [:screen-width :vertical-layout?])]
+     {:db (merge default-db layout)
       :fx [[:dispatch [::flavor/intro skip?]]]})))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
@@ -189,6 +198,11 @@
    (-> db
        (assoc :working? bool)
        (assoc :active? bool))))
+
+(reg-event-db
+ ::toggle-canvas-cover
+ (fn [db _]
+   (update db :canvas-covered? not)))
 
 (reg-event-fx
  ::select-channel-success
@@ -331,7 +345,7 @@
                                     :channels channels
                                     :color color}]]
              [:dispatch [::o2-order-loop (count channels) channels]]]}
-       {:fx [[:dispatch [::console/log :error "There are no channels in the chosen channel?!"]]
+       {:fx [[:dispatch [::flavor/no-channels]]
              [:dispatch [::set-busy false]]]}))))
 
 (reg-event-fx
@@ -383,3 +397,16 @@
  ::get
  (fn [db [_ ks]]
    (get-in db ks)))
+
+(reg-sub
+ ::graph-dimensions
+ (fn [{:keys [screen-width vertical-layout?]} _]
+   (if vertical-layout?
+     {:width (js/Math.floor (* 0.92 screen-width))
+      :height (js/Math.floor (* 0.72 screen-width))}
+     {:width 500 :height 400})))
+
+(reg-sub
+ ::version
+ (fn [{:keys [version]} _]
+   (str "amoeba-" (reduce * (repeat version 2)))))

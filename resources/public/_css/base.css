@@ -44,6 +44,7 @@ html {
   background-color: var(--bg);
   color: var(--ui);
   font-family: "VGA", monospace;
+  image-rendering: pixelated;
 }
 
 body {
@@ -61,14 +62,16 @@ h1 {
 main {
   display: flex;
   flex-flow: column nowrap;
-  max-width: 635px;
   border: 3px solid var(--ui);
 }
 
 header {
-  padding: 0.1rem 1.3rem 0;
+  padding: 0.2rem 0.25rem 0.2rem 1.3rem;
   background-color: var(--ui);
   color: var(--bg);
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
 }
 
 /* ========== MAIN UI ======================================================= */
@@ -77,10 +80,90 @@ header {
   flex-flow: row wrap-reverse;
   align-content: center;
   justify-content: center;
+  background: var(--ui);
+}
+
+#canvas-container {
+  display: grid;
+  grid-template-rows: 1fr;
+  overflow: hidden;
+}
+
+#canvas-cover {
+  grid-area: 1 / 1;
+  z-index: 2;
+  background-color: var(--ui);
+  transform: translateY(-100%);
+  transition: transform 0.35s ease-in;
+  padding: 0.2rem;
+}
+#canvas-cover > div {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-content: center;
+  border: 1px solid var(--bg);
+}
+
+.canvas-covered {
+  transform: translateY(0) !important;
 }
 
 #canvas {
+  grid-area: 1 / 1;
   border: 1px solid var(--ui);
+  background: var(--bg);
+}
+
+nav {
+  display: flex;
+  flex-flow: row nowrap;
+  gap: 0.3rem;
+}
+
+nav span {
+  background-color: var(--ui);
+  max-height: 20px;
+}
+
+.nav-button {
+  display: block;
+  background-size: contain;
+  cursor: pointer;
+  padding: 1px;
+  border-radius: 2px;
+}
+.nav-button div {
+  padding: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+}
+.nav-button:hover {
+  outline: 1px solid var(--bg);
+}
+.nav-button:active {
+  outline: unset;
+  background-color: var(--bg);
+}
+#close {
+  background-image: url("../_asset/svg/power-inv.svg");
+}
+#github {
+  background-image: url("../_asset/svg/github-inv.svg");
+}
+#arena {
+  background-image: url("../_asset/svg/arena-inv.svg");
+}
+
+#close:active {
+  background-image: url("../_asset/svg/power.svg");
+}
+#github:active {
+  background-image: url("../_asset/svg/github.svg");
+}
+#arena:active {
+  background-image: url("../_asset/svg/arena.svg");
 }
 
 /* ========== CONSOLE ======================================================= */
@@ -92,7 +175,6 @@ header {
   display: flex;
   flex-flow: column-reverse nowrap;
   height: 7rem;
-  flex: 0 1 40rem;
   padding-top: 0.5rem;
   border: 1px solid var(--ui);
   overflow: scroll;
@@ -200,22 +282,30 @@ header {
   grid-area: 1 / 1;
   display: flex;
   flex-flow: column nowrap;
-  flex-grow: 1;
   background: var(--bg);
   border: 1px solid var(--ui);
+  max-width: 100%;
 }
 
 #channel-info {
   margin: 0.75rem;
   padding: 0 0.5rem;
   flex-grow: 1;
+  max-width: 100%;
   background-color: var(--bg);
+  display: flex;
+  flex-flow: column nowrap;
+  gap: 0;
+  justify-content: center;
 }
 
 #channel-info .item {
   display: flex;
   flex-flow: row nowrap;
-  gap: 0.25rem;
+  gap: .25rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  line-height: 1.35rem;
 }
 
 /* ========== EXTRANEOUS SIDEBAR ============================================ */
@@ -223,14 +313,16 @@ header {
   display: grid;
   height: 7rem;
   grid-template-rows: 1fr;
+  overflow: hidden;
+  outline: 1px solid var(--ui);
 }
 
 #sidebar {
   display: flex;
-  flex-flow: column wrap;
+  flex-wrap: nowrap;
   gap: 1px;
-  width: 127px; /* THIS WILL HAVE TO CHANGE ! */
   border: 1px solid var(--ui);
+  background: var(--bg);
 }
 
 #loader-container {
@@ -265,9 +357,7 @@ header {
 
 #loader {
   grid-area: 1 / 1 / 1 / 2;
-  width: 125px;
-  height: 125px;
-  background: var(--bg);
+  background-color: var(--bg);
   background-size: contain;
 }
 
@@ -286,7 +376,7 @@ header {
 #progress-background-lines {
   grid-area: 1 / 1 / 1 / 1;
   display: flex;
-  flex-flow: row nowrap;
+  flex-wrap: nowrap;
   gap: 1px;
   background: var(--ui);
 }
@@ -300,8 +390,7 @@ header {
   grid-area: 1 / 1 / 1 / 1;
   z-index: 2;
   display: flex;
-  flex-flow: row nowrap;
-  flex-grow: 1;
+  flex-wrap: nowrap;
   justify-content: center;
   align-items: center;
   gap: 18%;

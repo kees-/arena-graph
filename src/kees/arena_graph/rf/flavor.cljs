@@ -76,9 +76,14 @@
             :dispatch [::set-busy false]}]]]}))
 
 (reg-event-fx
+ ::no-channels
+ (fn [_ _]
+   {:fx [[:dispatch [::console/log :error "The channel you chose doesn't contain links to any other channels!"]]]}))
+
+(reg-event-fx
  ::unknown-error
  (fn [_ [_ code]]
-   {:fx [:dispatch [::console/log :error "Something's really wrong! The request returned a" code "code."]
+   {:fx [[:dispatch [::console/log :error "Something's really wrong! The request returned a" code "code."]]
          [:dispatch-later
           [{:ms 350
             :dispatch [::console/delayed-log :guide 1150 "I don't know how to deal with this... Ahh..."]}
