@@ -1,0 +1,27 @@
+#F6CA18		main color
+#180906		bg
+#fcdf5d		lighter main color
+
+--change-color "#BBBBBB" "#180906" \
+--change-color "#FFFFFF" "#F6CA18" \
+--change-color "#F493F6" "#fcdf5d" \
+--change-color "#8EF7FB" "#fcdf5d" \
+--change-color "#94382E" "#9BF1E1" \
+--change-color "#4C8AF7" "#7FF7EF" \
+--change-color "#F88D48" "#7FE2B7" \
+--change-color "#F7F54C" "#F7F54C" \
+
+--change-color "#" "#" \
+
+--change-color "#000000" "#180906" \
+--change-color "#140e02" "#180906" \
+--change-color "#1a1202" "#180906" \
+--change-color "#4a3306" "#f6ca18" \
+--change-color "#80590a" "#f6ca18" \
+--change-color "#b37c0e" "#f6c709" \
+--change-color "#e7a012" "#fcdf5d" \
+--change-color "#efac27" "#fcdf5d" \
+--change-color "#f1b743" "#FCE683" \
+--change-color "#f3c05a" "#fadd6b" \
+--change-color "#f5ca74" "#fbe89d" \
+--change-color "#fefaf2" "#fdf4ce" \

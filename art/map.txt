@@ -1,0 +1,14 @@
+#180906
+;bg
+
+#F6CA18
+; main
+
+;#fcdf5d
+;main lighter
+
+#9BF1E1
+
+#7FF7EF
+#7FE2B7
+#F7F54C
