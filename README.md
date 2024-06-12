@@ -66,6 +66,32 @@ The current build is manually published and may not reflect the most recent chan
 
 </details>
 
+(archival)
+
+<details>
+  <summary>Old todo</summary>
+
+- [x] Channel info
+	- [x] Restyle
+	- [x] Add more information
+- [x] Progress bar for 1st order % completed callbacks
+- [x] Gifs loader
+	- [x] Fix tangent gif
+	- [x] Sliding doors
+	- [x] Make sure sliding doors don’t lag
+	      (I think this is from 10x)
+- [x] Input
+	- [x] Retime buttons
+	- [x] Sliding door on load
+	- [x] Skip intro
+- [ ] Mobile layout
+	- [ ] Reflow properly
+	- [ ] Set graph area dimensions on load based on window size
+- [x] Error handling
+	- [x] Private channel silent fail
+- [ ] More descriptive progress logs
+</details>
+
 ## What I'd welcome help with
 
 - Optimizing the way the app makes series of potentially many API requests
